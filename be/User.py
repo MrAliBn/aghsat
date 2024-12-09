@@ -33,3 +33,4 @@ class User:
 cursor.execute(create_users_table)
 cursor.close()
 
+
