@@ -1,3 +1,4 @@
+from shutil import which
 from tkinter import messagebox, ttk
 from tkinter import *
 import tkinter as tk
@@ -24,29 +25,48 @@ class App(Frame):
         self.screen = screen
         self.Register()
         self.Menu()
+        style = ttk.Style()
+        style.configure("Custom.Treeview", background="#444444", foreground="#FFFFFF", fieldbackground="#2e2e2e",
+                        font=("Arial", 10))
+        style.map("Custom.Treeview", background=[('selected', '#4CAF50')])  # Highlight selected rows
 
     # -------------------------------------------- Menu Top ---------------------------------------
 
     def Menu(self):
-        self.Setting = Menu(self.screen)
+        # ایجاد منوی اصلی
+        self.Setting = Menu(self.screen, bg="#2C3E50", fg="white", font=("Arial", 12, "bold"))
 
-        self.mnu = Menu(self.Setting, tearoff=0, background="black")
-        self.mnu.add_separator(background="black")
-        self.mnu.add_command(label="User Login", command=self.Login, foreground="white")
-        self.mnu.add_separator(background="black")
-        self.mnu.add_command(label="User Register", command=self.Register, foreground="white")
-        self.mnu.add_separator(background="black")
-        self.mnu.add_command(label="Login Dr", foreground="white", command=self.LoginDr)
-        self.mnu.add_separator(background="black")
-        self.mnu.add_separator(background="black")
-        self.mnu.add_command(label="Exit", command=self.Close, foreground="white")
+        # ایجاد منوی تنظیمات فرعی
+        self.mnu = Menu(self.Setting, tearoff=0, background="#34495E", fg="white")
 
-        self.Setting.add_cascade(label="Setting", menu=self.mnu)
+        # جداکننده‌ها
+        self.mnu.add_separator()
 
+        # ورودی و عملکرد منوها
+        self.mnu.add_command(label="ورود کاربر", command=self.Login, foreground="white", background="#2980B9",
+                             activebackground="#1ABC9C")
+        self.mnu.add_separator()
+        self.mnu.add_command(label="ثبت نام", command=self.Register, foreground="white", background="#2980B9",
+                             activebackground="#1ABC9C")
+        self.mnu.add_separator()
+        self.mnu.add_command(label="مدیریت", command=self.LoginDr, foreground="white", background="#2980B9",
+                             activebackground="#1ABC9C")
+        self.mnu.add_separator()
+        self.mnu.add_separator()
+        self.mnu.add_command(label="خروج", command=self.Close, foreground="white", background="#E74C3C",
+                             activebackground="#C0392B")
+
+        # اضافه کردن منو به نوار منوی اصلی
+        self.Setting.add_cascade(label="تنظیمات", menu=self.mnu)
+
+        # تنظیمات نوار منو
         self.screen.config(menu=self.Setting)
 
     def Close(self):
-        self.screen.destroy()
+        # پیامی که هنگام بستن صفحه نمایش داده می‌شود
+        result = messagebox.askquestion("خروج", "آیا مطمئن هستید که می‌خواهید از برنامه خارج شوید؟", icon='warning')
+        if result == 'yes':
+            self.screen.destroy()
 
     # -------------------------------------------- Sabt Aghsat ---------------------------------------
 
@@ -61,140 +81,270 @@ class App(Frame):
         user = Repository()
         result = user.Exist("users", self.Phone.get())
         for item in result:
-            self.frmsabtaghsat = Frame(self.frmscreenuser, width=1300, height=800)
+            # تنظیم فریم اصلی
+            self.frmsabtaghsat = Frame(self.frmscreenuser, width=1300, height=800, bg="#F4F4F4")
+            self.frmsabtaghsat.place(x=0, y=0)
 
-            self.mtnuser = Label(self.frmsabtaghsat)
-            self.mtnuser.configure(text="User", fg="black", font="Arial 20 bold")
-            self.mtnuser.place(x=680, y=40)
+            # عنوان فرم
+            self.mtnuser = Label(self.frmsabtaghsat, text="کاربر", fg="#333", font=("Arial", 24, "bold"), bg="#F4F4F4")
+            self.mtnuser.place(x=600, y=20)
 
+            # نام کاربری
             Name = StringVar()
-            self.txtname = Entry(self.frmsabtaghsat)
-            self.txtname.configure(bg="white", fg="black", bd=3, justify="center", textvariable=Name, state=DISABLED)
-            self.txtname.place(x=480, y=90)
+            self.txtname = Entry(
+                self.frmsabtaghsat,
+                bg="#FFFFFF",
+                fg="#333",
+                bd=2,
+                justify="center",
+                textvariable=Name,
+                font=("Arial", 14),
+                state=DISABLED,
+            )
+            self.txtname.place(x=480, y=90, width=200, height=30)
             Name.set(f"{item[1]} {item[2]}")
 
-            self.lblname = Label(self.frmsabtaghsat)
-            self.lblname.configure(text="UserName", fg="black")
+            self.lblname = Label(self.frmsabtaghsat, text="نام کاربری:", fg="#555", font=("Arial", 12), bg="#F4F4F4")
             self.lblname.place(x=400, y=90)
 
+            # شماره
             Phone = StringVar()
-            self.txtPhone = Entry(self.frmsabtaghsat)
-            self.txtPhone.configure(bg="white", fg="black", bd=3, justify="center", textvariable=Phone, state=DISABLED)
+            self.txtPhone = Entry(
+                self.frmsabtaghsat,
+                bg="#FFFFFF",
+                fg="#333",
+                bd=2,
+                justify="center",
+                textvariable=Phone,
+                font=("Arial", 14),
+                state=DISABLED,
+            )
             Phone.set(item[3])
-            self.txtPhone.place(x=830, y=90)
+            self.txtPhone.place(x=830, y=90, width=200, height=30)
 
-            self.lblPhone = Label(self.frmsabtaghsat)
-            self.lblPhone.configure(text="Phone", fg="black")
+            self.lblPhone = Label(self.frmsabtaghsat, text="شماره:", fg="#555", font=("Arial", 12), bg="#F4F4F4")
             self.lblPhone.place(x=750, y=90)
 
-            self.txtserial = Entry(self.frmsabtaghsat)
-            self.txtserial.configure(bg="white", fg="black", bd=3, justify="center")
-            self.txtserial.place(x=480, y=140)
+            # سریال
+            self.txtserial = Entry(
+                self.frmsabtaghsat,
+                bg="#FFFFFF",
+                fg="#333",
+                bd=2,
+                justify="center",
+                font=("Arial", 14),
+            )
+            self.txtserial.place(x=480, y=140, width=200, height=30)
 
-            self.lblserial = Label(self.frmsabtaghsat)
-            self.lblserial.configure(text="serial", fg="black")
+            self.lblserial = Label(self.frmsabtaghsat, text="سریال:", fg="#555", font=("Arial", 12), bg="#F4F4F4")
             self.lblserial.place(x=400, y=140)
 
-            self.txtmodel = Entry(self.frmsabtaghsat)
-            self.txtmodel.configure(bg="white", fg="black", bd=3, justify="center")
-            self.txtmodel.place(x=830, y=140)
+            # مدل
+            self.txtmodel = Entry(
+                self.frmsabtaghsat,
+                bg="#FFFFFF",
+                fg="#333",
+                bd=2,
+                justify="center",
+                font=("Arial", 14),
+            )
+            self.txtmodel.place(x=830, y=140, width=200, height=30)
 
-            self.lblmodel = Label(self.frmsabtaghsat)
-            self.lblmodel.configure(text="model", fg="black")
+            self.lblmodel = Label(self.frmsabtaghsat, text="مدل:", fg="#555", font=("Arial", 12), bg="#F4F4F4")
             self.lblmodel.place(x=750, y=140)
 
-            self.mtnaghsat = Label(self.frmsabtaghsat)
-            self.mtnaghsat.configure(text="aghsat", fg="black", font="Arial 20 bold")
-            self.mtnaghsat.place(x=680, y=220)
+            # عنوان اقساط
+            self.mtnaghsat = Label(
+                self.frmsabtaghsat, text="اقساط", fg="#333", font=("Arial", 20, "bold"), bg="#F4F4F4"
+            )
+            self.mtnaghsat.place(x=600, y=220)
 
-            self.txtstartgest = Entry(self.frmsabtaghsat)
-            self.txtstartgest.configure(bg="white", fg="black", bd=3, justify="center")
-            self.txtstartgest.place(x=480, y=290)
+            # تاریخ اولین قسط
+            self.txtstartgest = Entry(
+                self.frmsabtaghsat, bg="#FFFFFF", fg="#333", bd=2, justify="center", font=("Arial", 14)
+            )
+            self.txtstartgest.place(x=480, y=290, width=200, height=30)
 
-            self.lblstartgest = Label(self.frmsabtaghsat)
-            self.lblstartgest.configure(text="Start gest", fg="black")
+            self.lblstartgest = Label(
+                self.frmsabtaghsat, text="تاریخ اولین قسط:", fg="#555", font=("Arial", 12), bg="#F4F4F4"
+            )
             self.lblstartgest.place(x=350, y=290)
 
-            self.txtmablaghesmi = Entry(self.frmsabtaghsat)
-            self.txtmablaghesmi.configure(bg="white", fg="black", bd=3, justify="center")
+            # مبلغ اسمی
+            self.txtmablaghesmi = Entry(
+                self.frmsabtaghsat,
+                bg="#FFFFFF",
+                fg="#333",
+                bd=2,
+                justify="center",
+                font=("Arial", 14),
+            )
             self.txtmablaghesmi.bind("<KeyRelease>", self.format_txtmablaghesmi)
-            self.txtmablaghesmi.place(x=830, y=290)
+            self.txtmablaghesmi.place(x=830, y=290, width=200, height=30)
 
-            self.lblmablaghesmi = Label(self.frmsabtaghsat)
-            self.lblmablaghesmi.configure(text="mablagh esmi", fg="black")
-            self.lblmablaghesmi.place(x=730, y=290)
+            self.lblmablaghesmi = Label(
+                self.frmsabtaghsat, text="مبلغ اسمی:", fg="#555", font=("Arial", 12), bg="#F4F4F4"
+            )
+            self.lblmablaghesmi.place(x=750, y=290)
 
-            self.darsad = ttk.Combobox(self.frmsabtaghsat, background="white", foreground="black", justify="center",
-                                        state="readonly", width=19)
+            # درصد اقساط
+            self.darsad = ttk.Combobox(
+                self.frmsabtaghsat, background="white", foreground="black", justify="center", state="readonly", width=19
+            )
             self.darsad['values'] = self.aghsat()
             self.darsad.set(4)
             self.darsad.place(x=650, y=350)
 
-
-            self.txtgest = ttk.Combobox(self.frmsabtaghsat, background="white", foreground="black", justify="center",
-                                        state="readonly", width=19)
+            # انتخاب تعداد اقساط
+            self.txtgest = ttk.Combobox(
+                self.frmsabtaghsat, background="white", foreground="black", justify="center", state="readonly", width=19
+            )
             self.txtgest.set(1)
             self.txtgest['values'] = self.aghsat()
             self.txtgest.place(x=650, y=410)
 
-            self.lblaghsat = Label(self.frmsabtaghsat)
-            self.lblaghsat.configure(text="aghsat", fg="black")
+            self.lblaghsat = Label(self.frmsabtaghsat, text="اقساط:", fg="#555", font=("Arial", 12), bg="#F4F4F4")
             self.lblaghsat.place(x=580, y=410)
 
+            # روش پرداخت
             self.talachek = IntVar()
-            self.tala = ttk.Radiobutton(self.frmsabtaghsat, text='tala', variable=self.talachek, value=1)
+            self.tala = ttk.Radiobutton(self.frmsabtaghsat, text='طلا', variable=self.talachek, value=1)
             self.tala.bind("<Button-1>", self.talaentry)
             self.tala.place(x=770, y=450)
 
-            self.chek = ttk.Radiobutton(self.frmsabtaghsat, text='chek', variable=self.talachek, value=2)
+            self.chek = ttk.Radiobutton(self.frmsabtaghsat, text='چک', variable=self.talachek, value=2)
             self.chek.bind("<Button-1>", self.chekentry)
             self.chek.place(x=650, y=450)
 
-            self.btnadd = Button(self.frmsabtaghsat)
-            self.btnadd.configure(text="Register", bg="green", fg="black", bd=5, command=self.Onclicksabtaghsat)
-            self.btnadd.place(x=690, y=600)
+            # دکمه ثبت
+            self.btnadd = Button(
+                self.frmsabtaghsat,
+                text="ثبت",
+                bg="#4CAF50",
+                fg="white",
+                font=("Arial", 14, "bold"),
+                bd=2,
+                command=self.Onclicksabtaghsat,
+            )
+            self.btnadd.place(x=690, y=600, width=100, height=40)
 
-            self.lbldatee = Label(self.frmsabtaghsat, font="arial 12 bold")
+            # تاریخ و زمان
+            self.lbldatee = Label(self.frmsabtaghsat, font=("Arial", 12, "bold"), bg="#F4F4F4", fg="#555")
             self.update_timee()
             self.lbldatee.place(x=630, y=10)
 
-            self.frmsabtaghsat.place(x=0, y=0)
+            # دکمه تاریخ انتخاب
+            self.start_date_button = Button(
+                self.frmsabtaghsat, text=">", command=self.open_start_date_calendar, bg="#4CAF50", fg="white"
+            )
+            self.start_date_button.place(x=658, y=290, width=30, height=30)
 
-            self.start_date_button = Button(self.frmsabtaghsat, text=">",
-                                            command=self.open_start_date_calendar, bg="#4CAF50", fg="white")
-            self.start_date_button.place(x=658, y=290)
-
-            # Initialize calendar window as None
+            # تقویم (در حالت اولیه None)
             self.calendar_window = None
+
+    # -------------------------------------------- chek or tala ---------------------------------------
 
     def chekentry(self, e):
         try:
-            self.lblserialchek = Label(self.frmsabtaghsat, text="serial chek", fg="black")
+            # برچسب سریال چک
+            self.lblserialchek = Label(
+                self.frmsabtaghsat,
+                text="سریال چک:",
+                fg="#555",
+                font=("Arial", 12),
+                bg="#F4F4F4",
+            )
             self.lblserialchek.place(x=550, y=500)
-            self.lblmablaghlchek = Label(self.frmsabtaghsat, text="mablagh chek", fg="black")
+
+            # برچسب مبلغ چک
+            self.lblmablaghlchek = Label(
+                self.frmsabtaghsat,
+                text="مبلغ چک:",
+                fg="#555",
+                font=("Arial", 12),
+                bg="#F4F4F4",
+            )
             self.lblmablaghlchek.place(x=550, y=550)
-            self.serialchek = Entry(self.frmsabtaghsat, justify="center")
-            self.serialchek.place(x=650, y=500)
-            self.mablaghchek = Entry(self.frmsabtaghsat, justify="center")
+
+            # ورودی سریال چک
+            self.serialchek = Entry(
+                self.frmsabtaghsat,
+                justify="center",
+                bg="#FFFFFF",
+                fg="#333",
+                font=("Arial", 14),
+                bd=2,
+            )
+            self.serialchek.place(x=650, y=500, width=200, height=30)
+
+            # ورودی مبلغ چک
+            self.mablaghchek = Entry(
+                self.frmsabtaghsat,
+                justify="center",
+                bg="#FFFFFF",
+                fg="#333",
+                font=("Arial", 14),
+                bd=2,
+            )
             self.mablaghchek.bind("<KeyRelease>", self.format_mablaghchek)
-            self.mablaghchek.place(x=650, y=550)
+            self.mablaghchek.place(x=650, y=550, width=200, height=30)
+
+            # مخفی‌سازی فیلدهای طلا
             self.typegold.place_forget()
             self.grams.place_forget()
             self.lblgrams.place_forget()
             self.lbltypetala.place_forget()
+
         except AttributeError:
             pass
+
+    # -------------------------------------------- tala entry ---------------------------------------
+
     def talaentry(self, e):
         try:
-            self.lbltypetala = Label(self.frmsabtaghsat, text="type tala", fg="black")
+            # برچسب نوع طلا
+            self.lbltypetala = Label(
+                self.frmsabtaghsat,
+                text="نوع طلا:",
+                fg="#555",
+                font=("Arial", 12),
+                bg="#F4F4F4",
+            )
             self.lbltypetala.place(x=550, y=500)
-            self.lblgrams = Label(self.frmsabtaghsat, text="grams", fg="black")
+
+            # برچسب گرم
+            self.lblgrams = Label(
+                self.frmsabtaghsat,
+                text="گرم:",
+                fg="#555",
+                font=("Arial", 12),
+                bg="#F4F4F4",
+            )
             self.lblgrams.place(x=550, y=550)
 
-            self.typegold = Entry(self.frmsabtaghsat, justify="center")
-            self.typegold.place(x=650, y=500)
-            self.grams = Entry(self.frmsabtaghsat, justify="center")
-            self.grams.place(x=650, y=550)
+            # ورودی نوع طلا
+            self.typegold = Entry(
+                self.frmsabtaghsat,
+                justify="center",
+                bg="#FFFFFF",
+                fg="#333",
+                font=("Arial", 14),
+                bd=2,
+            )
+            self.typegold.place(x=650, y=500, width=200, height=30)
+
+            # ورودی گرم
+            self.grams = Entry(
+                self.frmsabtaghsat,
+                justify="center",
+                bg="#FFFFFF",
+                fg="#333",
+                font=("Arial", 14),
+                bd=2,
+            )
+            self.grams.place(x=650, y=550, width=200, height=30)
+
+            # مخفی‌سازی فیلدهای چک
             self.serialchek.place_forget()
             self.mablaghchek.place_forget()
             self.lblserialchek.place_forget()
@@ -202,6 +352,7 @@ class App(Frame):
 
         except AttributeError:
             pass
+
     def format_txtmablaghesmi(self, e):
         self.textmablaghesmi = self.txtmablaghesmi.get()
         if self.textmablaghesmi.strip() != "":
@@ -227,29 +378,29 @@ class App(Frame):
     def Onclicksabtaghsat(self):
         self.esmi = self.txtmablaghesmi.get().replace(",", "")
         if not self.txtserial.get().isdigit() or self.txtserial.get() == '' or len(self.txtserial.get()) != 15:
-            messagebox.showerror("Error", "Fill in the serial part with a number")
+            messagebox.showerror("خطا", "فیلد سریال را با عدد 15 رقمی پر کنید")
             self.txtserial.focus()
         elif self.txtmodel.get() == '':
-            messagebox.showerror("Error", "Fill in the model section")
+            messagebox.showerror("خطا", "فیلد مدل خالی است")
             self.txtmodel.focus()
         elif self.txtstartgest.get() == '':
-            messagebox.showerror("Error", "Fill in the startgest section")
+            messagebox.showerror("خطا", "فیلد تاریخ اولین قسط خالی است")
             self.txtstartgest.focus()
         elif self.txtmablaghesmi.get() == '' or not self.esmi.isdigit():
-            messagebox.showerror("Error", "Fill in the mablaghesmi part with a number")
+            messagebox.showerror("خطا", "فیلد مبلغ اسمی را با عدد پر کنید")
             self.txtmablaghesmi.focus()
         elif self.talachek.get() == 0:
-            messagebox.showerror("Error", "Fill in the gram part with a number")
+            messagebox.showerror("خطا", "لطفا نوعضمانت را انتخاب کنید (طلا یا چک)")
         elif self.talachek.get() == 1 and self.grams.get() == '':
-            messagebox.showerror("Error", "Fill in the gram part with a number")
+            messagebox.showerror("خطا", "لطفا انتخاب کنید طلا چند گرم است")
         elif self.talachek.get() == 1 and self.typegold.get() == '':
-            messagebox.showerror("Error", "Fill in the type gold part with a number")
+            messagebox.showerror("خطا", "لطفا نوع طلا را انتخاب کنید")
             self.typegold.focus()
         elif self.talachek.get() == 2 and self.serialchek.get() == '':
-            messagebox.showerror("Error", "Fill in the serial chek part with a number")
+            messagebox.showerror("خطا", "لطفا فیلد سریال چک را با عدد پر کنید")
             self.serialchek.focus()
         elif self.talachek.get() == 2 and self.mablaghchek.get() == '':
-            messagebox.showerror("Error", "Fill in the mablaghchek part with a number")
+            messagebox.showerror("خطا", "لطفا فیلد مبلغ چک را پر کنید")
             self.mablaghchek.focus()
         else:
             try:
@@ -306,88 +457,88 @@ class App(Frame):
     # -------------------------------------------- taghvim ---------------------------------------
 
     def open_start_date_calendar(self):
-        """Open calendar window for selecting start date"""
+        """باز کردن پنجره تقویم برای انتخاب تاریخ شروع"""
         self.open_calendar_window(self.txtstartgest)
 
     def open_calendar_window(self, entry_widget):
-        """Open calendar window to select year, month, and day"""
+        """باز کردن پنجره تقویم برای انتخاب سال، ماه و روز"""
         if self.calendar_window is not None and self.calendar_window.winfo_exists():
             return
 
-        # Create new top-level window for the calendar
+        # ایجاد پنجره جدید برای تقویم
         self.calendar_window = Toplevel(self.frmsabtaghsat)
         self.calendar_window.resizable(False, False)
-        self.calendar_window.title("Select Date")
+        self.calendar_window.title("انتخاب تاریخ")
         self.calendar_window.geometry("%dx%d+%d+%d" % (400, 300, 700, 350))
         self.calendar_window.config(bg='#f2f2f2')
 
-        # Smaller font and size for year combobox
-        self.year_label = Label(self.calendar_window, text="Year", bg='#f2f2f2', font="Arial 8")
+        # ایجاد برچسب و کادر انتخاب سال
+        self.year_label = Label(self.calendar_window, text="سال", bg='#f2f2f2', font="Arial 8")
         self.year_label.grid(row=0, column=0)
         self.year_combobox = ttk.Combobox(self.calendar_window, state="readonly", width=15, font="Arial 8")
         self.year_combobox.grid(row=0, column=1)
         self.year_combobox['values'] = [str(year) for year in range(1400, 1501)]
         self.year_combobox.set(JalaliDate.today().year)
 
-        # Smaller font and size for month combobox
-        self.month_label = Label(self.calendar_window, text="Month", bg='#f2f2f2', font="Arial 8")
+        # ایجاد برچسب و کادر انتخاب ماه
+        self.month_label = Label(self.calendar_window, text="ماه", bg='#f2f2f2', font="Arial 8")
         self.month_label.grid(row=1, column=0)
         self.month_combobox = ttk.Combobox(self.calendar_window, state="readonly", width=15, font="Arial 8")
         self.month_combobox.grid(row=1, column=1)
 
         # ترکیب شماره و نام ماه‌ها
         self.month_mapping = {
-            1: "Farvardin", 2: "Ordibehesht", 3: "Khordad",
-            4: "Tir", 5: "Mordad", 6: "Shahrivar",
-            7: "Mehr", 8: "Aban", 9: "Azar",
-            10: "Dey", 11: "Bahman", 12: "Esfand"
+            1: "فروردین", 2: "اردیبهشت", 3: "خرداد",
+            4: "تیر", 5: "مرداد", 6: "شهریور",
+            7: "مهر", 8: "آبان", 9: "آذر",
+            10: "دی", 11: "بهمن", 12: "اسفند"
         }
         self.month_combobox['values'] = [f"{num} {name}" for num, name in self.month_mapping.items()]
         self.month_combobox.set(f"{JalaliDate.today().month} {self.month_mapping[JalaliDate.today().month]}")
 
-        # Smaller day entry
-        self.day_label = Label(self.calendar_window, text="Day", bg='#f2f2f2', font="Arial 7")
+        # ایجاد برچسب و کادر ورود روز
+        self.day_label = Label(self.calendar_window, text="روز", bg='#f2f2f2', font="Arial 7")
         self.day_label.grid(row=2, column=0)
         self.day_entry = Entry(self.calendar_window, width=5, font="Arial 10")
         self.day_entry.grid(row=2, column=1)
 
-        # Smaller Select button
-        self.select_button = Button(self.calendar_window, text="Select", command=lambda: self.select_date(entry_widget),
+        # ایجاد دکمه انتخاب تاریخ
+        self.select_button = Button(self.calendar_window, text="انتخاب", command=lambda: self.select_date(entry_widget),
                                     bg="#4CAF50", fg="white", font="Arial 10", bd=1)
         self.select_button.grid(row=3, column=0, columnspan=2, pady=5)
 
-        # Show Jalali calendar
+        # نمایش تقویم جلالی
         self.show_jalali_calendar()
 
-        # Bind events to update days when year or month changes
+        # ایجاد رویداد برای بروزرسانی روزها هنگام تغییر سال یا ماه
         self.year_combobox.bind("<<ComboboxSelected>>", lambda event: self.show_jalali_calendar())
         self.month_combobox.bind("<<ComboboxSelected>>", lambda event: self.show_jalali_calendar())
 
     def show_jalali_calendar(self):
-        """Show Jalali calendar and allow for selecting a date"""
+        """نمایش تقویم جلالی و انتخاب تاریخ"""
         selected_year = int(self.year_combobox.get())
         selected_month = int(self.month_combobox.get().split()[0])
 
-        # Remove only calendar day buttons
+        # حذف تنها دکمه‌های روز تقویم
         for widget in self.calendar_window.grid_slaves():
             if widget.grid_info()["row"] >= 4:
                 widget.grid_forget()
 
-        # Frame for calendar days
+        # ایجاد فریم برای روزهای تقویم
         calendar_frame = Frame(self.calendar_window, bg='#f2f2f2')
         calendar_frame.grid(row=4, column=0, columnspan=2)
 
-        # Smaller days of the week
-        days_of_week = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+        # نمایش نام روزهای هفته
+        days_of_week = ["یکشنبه", "دوشنبه", "سه‌شنبه", "چهارشنبه", "پنج‌شنبه", "جمعه", "شنبه"]
         for i, day_name in enumerate(days_of_week):
             day_button = Button(calendar_frame, text=day_name, width=5, font="Arial 7", bg="#555555", fg="white")
             day_button.grid(row=0, column=i)
 
-        # Show dates for the selected month and year
+        # نمایش روزهای ماه انتخابی
         self.show_dates(calendar_frame, selected_year, selected_month)
 
     def show_dates(self, calendar_frame, year, month):
-        """Show the dates of the selected month in the calendar"""
+        """نمایش روزهای ماه انتخابی در تقویم"""
         month_days = JalaliDate(year, month, 1).days_in_month(month, year)
         first_day_of_month = JalaliDate(year, month, 1).weekday()
 
@@ -399,12 +550,12 @@ class App(Frame):
             day_button.grid(row=row, column=col, padx=2, pady=2)
 
     def select_day(self, day):
-        """Select a day and update the day entry in the calendar window"""
+        """انتخاب روز و بروزرسانی فیلد روز در پنجره تقویم"""
         self.day_entry.delete(0, END)
         self.day_entry.insert(0, str(day))
 
     def select_date(self, entry_widget):
-        """Save the selected date in the entry widget and close the calendar window"""
+        """ذخیره تاریخ انتخاب شده در فیلد ورودی و بستن پنجره تقویم"""
         year = self.year_combobox.get()
         month = self.month_combobox.get().split()[0]  # فقط شماره ماه را استخراج کن
         day = self.day_entry.get()
@@ -419,7 +570,7 @@ class App(Frame):
             self.calendar_window.destroy()
 
         except ValueError:
-            print("Invalid date entered.")
+            print("تاریخ وارد شده معتبر نیست.")
 
     def update_timee(self):
         current_time = time.strftime("%H:%M:%S")
@@ -437,24 +588,32 @@ class App(Frame):
     # -------------------------------------------- info aghsat---------------------------------------
 
     def infoaghsat(self):
+        """اطلاعات اقساط را نمایش می‌دهد"""
         user = Repository()
         result = user.Exist("users", self.Phone.get())
+
         self.frminfoaghsat = Frame(self.frmscreenuser, width=1300, height=800)
-        self.textbox = tk.Text(self.frminfoaghsat, width=55, height=40, state="disabled")
+
+        # کادر متنی برای نمایش اطلاعات
+        self.textbox = tk.Text(self.frminfoaghsat, width=45, height=38, state="disabled",
+                               bg="#EAEAEA", fg="#333", font=("Arial", 12), bd=2, relief="solid")
         self.textbox.place(x=10, y=50)
         self.test()
+
         for item in result:
             self.textbox.config(state=NORMAL)
 
+            # نمایش تاریخ ثبت‌نام و ساعت
             self.lbldate = Label(self.frminfoaghsat, font="arial 12 bold")
             self.update_time()
             self.lbldate.place(x=20, y=20)
 
-            self.textbox.insert(tk.END, f"\nDate Register : {item[4]} - Time Register {item[5]}")
+            self.textbox.insert(tk.END, f"\nتاریخ ثبت نام : {item[4]} - ساعت ثبت نام {item[5]}")
             self.textbox.config(state=DISABLED)
 
         self.frminfoaghsat.place(x=0, y=0)
 
+        # ورودی‌های مختلف برای اطلاعات اقساط
         self.id = StringVar()
         self.txtid = Entry(self.frminfoaghsat, textvariable=self.id)
         self.txtid.place_forget()
@@ -467,17 +626,28 @@ class App(Frame):
         self.txtpaid = Entry(self.frminfoaghsat, textvariable=self.paid)
         self.txtpaid.place_forget()
 
-        self.btntasfie = Button(self.frminfoaghsat, text="payment", background="green", command=self.oneclickpymuont)
+        # دکمه‌ها با استایل مدرن
+        self.btntasfie = Button(self.frminfoaghsat, text="پرداخت", background="#28a745", command=self.oneclickpymuont,
+                                font=("Arial", 12, "bold"), relief="flat", fg="white", width=10)
         self.btntasfie.place_forget()
-        self.btndelete = Button(self.frminfoaghsat, text="Delete", background="red", command=self.oneclickdelete)
+
+        self.btndelete = Button(self.frminfoaghsat, text="حذف", background="#dc3545", command=self.oneclickdelete,
+                                font=("Arial", 12, "bold"), relief="flat", fg="white", width=10)
         self.btndelete.place_forget()
-        self.btncancel = Button(self.frminfoaghsat, text="Cancel", command=self.onclickcancel)
+
+        self.btncancel = Button(self.frminfoaghsat, text="کنسل", command=self.onclickcancel,
+                                font=("Arial", 12, "bold"), relief="flat", fg="black", width=10)
         self.btncancel.place_forget()
-        self.btnnotasfie = Button(self.frminfoaghsat, text="Cpayment", background="red", command=self.oneclickcpymuont)
+
+        self.btnnotasfie = Button(self.frminfoaghsat, text="لغو پرداخت", background="#dc3545",
+                                  command=self.oneclickcpymuont,
+                                  font=("Arial", 12, "bold"), relief="flat", fg="white", width=10)
         self.btnnotasfie.place_forget()
 
+        # تعریف ستون‌ها برای جداول اقساط
         s = ['row', 'code', 'name', 'phone', 'price', 'karmozd', 'kamel', 'time', 'status', 'num']
 
+        # جدول اقساط پرنشده
         self.tableprnashode = ttk.Treeview(self.frminfoaghsat, columns=s, show='headings', height=15)
 
         self.tableprnashode.column('row', width=0, stretch=tk.NO)
@@ -491,12 +661,13 @@ class App(Frame):
         self.tableprnashode.column('kamel', width=0, stretch=tk.NO)
         self.tableprnashode.column('num', width=0, stretch=tk.NO)
 
-        self.tableprnashode.heading('code', text=s[1], anchor='center')
-        self.tableprnashode.heading('name', text=s[2], anchor='center')
-        self.tableprnashode.heading('phone', text=s[3], anchor='center')
-        self.tableprnashode.heading('price', text=s[4], anchor='center')
-        self.tableprnashode.heading('time', text=s[7], anchor='center')
-        self.tableprnashode.heading('status', text=s[8], anchor='center')
+        # عنوان ستون‌ها برای جدول اقساط
+        self.tableprnashode.heading('code', text='کد', anchor='center')
+        self.tableprnashode.heading('name', text='نام', anchor='center')
+        self.tableprnashode.heading('phone', text='شماره', anchor='center')
+        self.tableprnashode.heading('price', text='مبلغ قسط', anchor='center')
+        self.tableprnashode.heading('time', text='تاریخ', anchor='center')
+        self.tableprnashode.heading('status', text='وضعیت', anchor='center')
 
         self.tableprnashode.bind('<Button-1>', self.selectprnashode)
 
@@ -504,6 +675,7 @@ class App(Frame):
         self.cleartabaleprnashode()
         self.inserttableprnashode()
 
+        # جدول اقساط پرداخت شده
         self.tableprshode = ttk.Treeview(self.frminfoaghsat, columns=s, show='headings', height=15)
 
         self.tableprshode.column('row', width=0, stretch=tk.NO)
@@ -517,12 +689,13 @@ class App(Frame):
         self.tableprshode.column('kamel', width=0, stretch=tk.NO)
         self.tableprshode.column('num', width=0, stretch=tk.NO)
 
-        self.tableprshode.heading('code', text=s[1], anchor='center')
-        self.tableprshode.heading('name', text=s[2], anchor='center')
-        self.tableprshode.heading('phone', text=s[3], anchor='center')
-        self.tableprshode.heading('price', text=s[4], anchor='center')
-        self.tableprshode.heading('time', text=s[7], anchor='center')
-        self.tableprshode.heading('status', text=s[8], anchor='center')
+        # عنوان ستون‌ها برای جدول اقساط پرداخت شده
+        self.tableprshode.heading('code', text='کد', anchor='center')
+        self.tableprshode.heading('name', text='نام', anchor='center')
+        self.tableprshode.heading('phone', text='شماره', anchor='center')
+        self.tableprshode.heading('price', text='مبلغ قسط', anchor='center')
+        self.tableprshode.heading('time', text='تاریخ', anchor='center')
+        self.tableprshode.heading('status', text='وضعیت', anchor='center')
         self.tableprshode.bind('<Button-1>', self.selectprshode)
 
         self.tableprshode.place(x=480, y=411)
@@ -585,27 +758,27 @@ class App(Frame):
                     grouped_data[code]['units'].append(item2)
 
             for code, data in grouped_data.items():
-                self.textbox.insert(tk.END, f"Code: {code}\n")
+                self.textbox.insert(tk.END, f"کد موبایل: {code}\n")
 
                 # ابتدا اطلاعات دستگاه‌ها را نمایش می‌دهیم (سریال و مدل)
 
                 for device in data['devices']:
-                    self.textbox.insert(tk.END, f"Serial: {device[4]}\n")
-                    self.textbox.insert(tk.END, f"Model: {device[6]}\n")
+                    self.textbox.insert(tk.END, f"سریال: {device[4]}\n")
+                    self.textbox.insert(tk.END, f"مدل: {device[6]}\n")
 
                 # سپس اطلاعات اقساط را نمایش می‌دهیم
                 for item2 in data['units']:
-                    self.textbox.insert(tk.END, f"mablagh koli: {item2[2]}\n")
-                    self.textbox.insert(tk.END, f"Karmozd koli: {int(item2[1].replace(',', '')) * int(item2[3]):,}\n")
-                    self.textbox.insert(tk.END, f"Karmozd har mah: {item2[1]}\n")
+                    self.textbox.insert(tk.END, f"مبلغ کامل: {item2[2]}\n")
+                    self.textbox.insert(tk.END, f"کل کارمزد: {int(item2[1].replace(',', '')) * int(item2[3]):,}\n")
+                    self.textbox.insert(tk.END, f"کارمزد هر ماه: {item2[1]}\n")
 
                 code_count_1 = code_count.get(code, 0)
                 prshode_count = prshode.get(code, 0)
                 prnashode_count = prnashode.get(code, 0)
 
-                self.textbox.insert(tk.END, f"Tedad Eqsat: {code_count_1}\n")
-                self.textbox.insert(tk.END, f"Tedad prshode: {prshode_count}\n")
-                self.textbox.insert(tk.END, f"Tedad prnashode: {prnashode_count}\n")
+                self.textbox.insert(tk.END, f"تعداد اقساط: {code_count_1}\n")
+                self.textbox.insert(tk.END, f"اقساط پرداخت شده: {prshode_count}\n")
+                self.textbox.insert(tk.END, f"اقساط پرداخت نشده: {prnashode_count}\n")
 
                 self.textbox.insert(tk.END, f"\n-----------------------------------------------\n")
 
@@ -665,7 +838,7 @@ class App(Frame):
             self.tableprshode.delete(*sel)
 
     def oneclickpymuont(self):
-        result = messagebox.askyesno('warning', 'Are you sure about the payment?')
+        result = messagebox.askyesno('هشدار', 'ایا میخاهید این قسط پرداخت شود؟')
         if result:
             user = Repository()
             obj = self.paid.get(), self.id.get()
@@ -674,7 +847,7 @@ class App(Frame):
 
     def oneclickdelete(self):
         user = Repository()
-        message = messagebox.askyesno('warning', 'Are you sure about the Delete?')
+        message = messagebox.askyesno('هشدار', 'مطمعن به حذف این کد هستید؟ (همه ثبت هایی که با این کد هستند حذف خواهند شد)')
         if message:
             result = user.Delete("aghsat", self.code.get())
             result1 = user.Delete("device", self.code.get())
@@ -686,7 +859,7 @@ class App(Frame):
                 messagebox.showinfo('cancel', 'cancel')
 
     def oneclickcpymuont(self):
-        result = messagebox.askyesno('warning', 'Are you sure about the cancel payment?')
+        result = messagebox.askyesno('هشدار', 'ایا میخاهید این پرداخت را کنسل کنید؟')
         if result:
             user = Repository()
             obj = self.paid.get(), self.id.get()
@@ -702,19 +875,37 @@ class App(Frame):
         self.frmscreenuser = Frame(self.screen, width=1500, height=800, bg="white")
         self.infoaghsat()
 
-        self.frmmenu = Frame(self.frmscreenuser, width=200, height=800, bg="black")
+        # استایل برای منو و برچسب‌ها
+        label_style = {
+            "font": ("Arial", 16, "bold"),
+            "fg": "#ecf0f1",
+            "bg": "#34495e",
+            "width": 25,
+            "height": 2,
+            "bd": 0,
+            "anchor": "w",
+            "padx": 20,
+            "pady": 10
+        }
 
-        self.lblsabtaghsat = Label(self.frmmenu)
-        self.lblsabtaghsat.configure(text="info aghsat", fg="white", font="Arial 12 bold", bg="black")
+        self.frmmenu = Frame(self.frmscreenuser, width=200, height=800, bg="#2c3e50")
+
+        self.lblsabtaghsat = Label(self.frmmenu, text=" اطلاعات اقساط ")
+        self.lblsabtaghsat.configure(**label_style)
         self.lblsabtaghsat.bind("<Button-1>", self.clickinfoaghsat)
-        self.lblsabtaghsat.place(x=50, y=100)
+        self.lblsabtaghsat.place(x=0, y=100)
 
-        self.lblinfoaghsat = Label(self.frmmenu)
-        self.lblinfoaghsat.configure(text="sabt aghsat", fg="white", font="Arial 12 bold", bg="black")
+        self.lblinfoaghsat = Label(self.frmmenu, text="ثبت اقساط")
+        self.lblinfoaghsat.configure(**label_style)
         self.lblinfoaghsat.bind("<Button-1>", self.clicksabtaghsat)
-        self.lblinfoaghsat.place(x=50, y=50)
+        self.lblinfoaghsat.place(x=0, y=50)
 
         self.frmscreenuser.place(x=0, y=0)
+
+        for label in [self.lblsabtaghsat, self.lblinfoaghsat]:
+            label.bind("<Enter>", lambda e: self.change_color_on_hover(e, "#16a085"))
+            label.bind("<Leave>", lambda e: self.change_color_on_hover(e, "#34495e"))
+
         self.frmmenu.place(x=1300, y=0)
 
     # -------------------------------------------- Register User ---------------------------------------
@@ -728,64 +919,125 @@ class App(Frame):
 
     def OnclickRegister(self):
         if self.txtrname.get() == '' or not self.txtrname.get().isalpha():
-            messagebox.showerror("Error", "Please enter your name")
+            messagebox.showerror("خطا", "فیلد نام را فقط با حروف پر کنید")
         elif self.txtrfamily.get() == '' or not self.txtrfamily.get().isalpha():
-            messagebox.showerror("Error", "Please enter your family name")
+            messagebox.showerror("خطا", "فیلد فامیلی را فقط با حروف پر کنید")
         elif self.txtrPhone.get() == '' or not self.txtrPhone.get().isdigit():
-            messagebox.showerror("Error", "Please enter your phone number")
+            messagebox.showerror("خطا", "فیلد شماره را فقط با اعداد پر کنید")
         elif len(self.Phone.get()) < 11:
-            messagebox.showerror("Error", "The phone number is wrong")
+            messagebox.showerror("خطا", "شماره اشتباه است")
             self.cleanphone()
         else:
             user = Repository()
             obj = self.txtrname.get(), self.txtrfamily.get(), self.Phone.get(), date, Time
             result = user.Exist("users", self.Phone.get())
             if result:
-                messagebox.showerror("Error", "The user is already registered")
+                messagebox.showerror("خطا", "این کاربر قبلا ثبت نام شده است")
             else:
                 user.adduser("users", obj)
                 self.ScreenUser()
 
     def Register(self):
-        self.frmregister = Frame(self.screen, width=1500, height=800)
-        self.mtnregister = Label(self.frmregister)
-        self.mtnregister.configure(text="Register User", fg="black", font="Arial 20 bold")
-        self.mtnregister.place(x=670, y=160)
-
-        self.txtrname = Entry(self.frmregister)
-        self.txtrname.configure(bg="white", fg="black", bd=3, justify="center")
-        self.txtrname.place(x=670, y=230)
-
-        self.lblrname = Label(self.frmregister)
-        self.lblrname.configure(text="Name", fg="black")
-        self.lblrname.place(x=580, y=230)
-
-        self.txtrfamily = Entry(self.frmregister)
-        self.txtrfamily.configure(bg="white", fg="black", bd=3, justify="center")
-        self.txtrfamily.place(x=670, y=280)
-
-        self.lblrfamily = Label(self.frmregister)
-        self.lblrfamily.configure(text="Family", fg="black")
-        self.lblrfamily.place(x=580, y=280)
-
-        self.Phone = StringVar()
-        self.txtrPhone = Entry(self.frmregister, textvariable=self.Phone)
-        self.txtrPhone.configure(bg="white", fg="black", bd=3, justify="center")
-        self.txtrPhone.place(x=670, y=330)
-
-        self.lblrPhone = Label(self.frmregister)
-        self.lblrPhone.configure(text="Phone", fg="black")
-        self.lblrPhone.place(x=580, y=330)
-
-        self.lbllogin = Label(self.frmregister)
-        self.lbllogin.configure(text="User Login", fg="blue", font="Arial 12 bold")
-        self.lbllogin.bind("<Button-1>", self.oneclickLogin)
-        self.lbllogin.place(x=710, y=370)
-
-        self.btnregister = Button(self.frmregister, command=self.OnclickRegister)
-        self.btnregister.configure(text="Register", bg="green", fg="white", bd=3)
-        self.btnregister.place(x=710, y=410)
+        # فریم اصلی ثبت‌نام
+        self.frmregister = Frame(self.screen, width=1500, height=800, bg="#1B1F38")
         self.frmregister.place(x=0, y=0)
+        # عنوان فرم
+        self.mtnregister = Label(
+            self.frmregister,
+            text="ثبت نام کاربر",
+            fg="white",
+            font=("Arial", 25, "bold"),
+            bg="#1B1F38",
+        )
+        self.mtnregister.place(x=660, y=180)
+
+        # فیلد ورودی نام کاربر
+        self.namee = StringVar()
+        self.txtrname = Entry(
+            self.frmregister,
+            bg="#FFFFFF",
+            fg="#000",
+            bd=0,
+            justify="center",
+            textvariable=self.namee,
+            font=("Arial", 14),
+        )
+        self.namee.set("نام کاربر")
+        self.txtrname.bind("<Button-1>", self.clearname)
+        self.txtrname.place(x=585, y=250, width=300, height=40)
+
+        # حاشیه برای فیلد
+        Frame(self.frmregister, bg="#FF6B6B", width=310, height=2).place(x=580, y=292)
+
+        # فیلد ورودی نام خانوادگی
+        self.familyy = StringVar()
+        self.txtrfamily = Entry(
+            self.frmregister,
+            bg="#FFFFFF",
+            fg="#000",
+            bd=0,
+            justify="center",
+            textvariable=self.familyy,
+            font=("Arial", 14),
+        )
+        self.familyy.set("نام خانوادگی")
+        self.txtrfamily.bind("<Button-1>", self.clearfamily)
+        self.txtrfamily.place(x=585, y=310, width=300, height=40)
+        Frame(self.frmregister, bg="#FF6B6B", width=310, height=2).place(x=580, y=352)
+
+        # فیلد ورودی شماره تلفن
+        self.Phone = StringVar()
+        self.txtrPhone = Entry(
+            self.frmregister,
+            bg="#FFFFFF",
+            fg="#000",
+            bd=0,
+            justify="center",
+            textvariable=self.Phone,
+            font=("Arial", 14),
+        )
+        self.Phone.set("09171112222")
+        self.txtrPhone.bind("<Button-1>", self.clearphone)
+        self.txtrPhone.place(x=585, y=370, width=300, height=40)
+        Frame(self.frmregister, bg="#FF6B6B", width=310, height=2).place(x=580, y=412)
+
+        # دکمه ورود کاربر
+        self.lbllogin = Label(
+            self.frmregister,
+            text="ورود کاربر",
+            fg="#4ACFAC",
+            font=("Arial", 15, "bold"),
+            bg="#1B1F38",
+            cursor="hand2",
+        )
+        self.lbllogin.bind("<Button-1>", self.oneclickLogin)
+        self.lbllogin.place(x=700, y=430)
+
+        # دکمه ثبت‌نام
+        self.btnregister = Button(
+            self.frmregister,
+            text="ثبت نام",
+            command=self.OnclickRegister,
+            bg="#4ACFAC",
+            fg="white",
+            font=("Arial", 14, "bold"),
+            activebackground="#3BAF9E",
+            activeforeground="white",
+            bd=0,
+        )
+        self.btnregister.place(x=640, y=480, width=200, height=40)
+
+    def clearphone(self, e):
+        if self.Phone.get() == '09171112222':
+            self.Phone.set('')
+
+    def clearname(self, e):
+        if self.namee.get() == 'نام کاربر':
+            self.namee.set('')
+
+    def clearfamily(self, e):
+        if self.familyy.get() == 'نام خانوادگی':
+            self.familyy.set('')
 
     # -------------------------------------------- Login User ---------------------------------------
 
@@ -799,59 +1051,118 @@ class App(Frame):
     def oneclicklogin(self):
         user = Repository()
         if len(self.Phone.get()) < 11:
-            messagebox.showerror("Error", "The phone number is wrong")
+            messagebox.showerror("خطا", "شماره اشتباه است")
             self.cleanphone()
         else:
             result = user.Exist("users", self.Phone.get())
             if not result:
-                messagebox.showerror("Error", "User not found")
+                messagebox.showerror("خطا", "کاربر پیدا نشد")
             else:
                 self.ScreenUser()
 
     def Login(self):
-        self.frmlogin = Frame(self.screen, width=1500, height=800)
-
-        self.mtnregister = Label(self.frmlogin)
-        self.mtnregister.configure(text="Login User", fg="black", font="Arial 20 bold")
-        self.mtnregister.place(x=660, y=220)
-
-        self.txtlogin = Entry(self.frmlogin)
-        self.txtlogin.configure(bg="white", fg="black", bd=3, justify="center", textvariable=self.Phone)
-        self.txtlogin.place(x=650, y=290)
-
-        self.lbllogin = Label(self.frmlogin)
-        self.lbllogin.configure(text="Phone", fg="black")
-        self.lbllogin.place(x=600, y=290)
-
-        self.lblregister = Label(self.frmlogin)
-        self.lblregister.configure(text="User Register", fg="blue", font="Arial 12 bold")
-        self.lblregister.bind("<Button-1>", self.oneclickRegister)
-        self.lblregister.place(x=680, y=330)
-
-        self.btnlogin = Button(self.frmlogin)
-        self.btnlogin.configure(text="Login", bg="green", fg="white", bd=3, command=self.oneclicklogin)
-        self.btnlogin.place(x=700, y=370)
-
+        # فریم اصلی ورود
+        self.frmlogin = Frame(self.screen, width=1500, height=800, bg="#1B1F38")
         self.frmlogin.place(x=0, y=0)
 
+        # فریم برجسته برای ورود
+        self.frmloginbd = Frame(self.frmlogin, width=400, height=400, bg="#FFFFFF", relief="raised", bd=10)
+        self.frmloginbd.place(relx=0.5, rely=0.5, anchor="center")
+
+        # عنوان فرم
+        self.mtnregister = Label(
+            self.frmloginbd,
+            text="ورود کاربر",
+            fg="#1B1F38",
+            font=("Arial", 20, "bold"),
+            bg="#FFFFFF",
+        )
+        self.mtnregister.place(relx=0.5, rely=0.15, anchor="center")
+
+        # لیبل شماره تلفن
+        self.lblphonee = Label(
+            self.frmloginbd,
+            text="شماره تلفن:",
+            font=("Arial", 12),
+            bg="#FFFFFF",
+            fg="#6B7280",
+        )
+        self.lblphonee.place(relx=0.5, rely=0.35, anchor="center")
+
+        # فیلد ورودی شماره تلفن
+        self.txtlogin = Entry(
+            self.frmloginbd,
+            bg="#F3F4F6",
+            fg="#000000",
+            bd=0,
+            justify="center",
+            font=("Arial", 14),
+            textvariable=self.Phone,
+        )
+        self.txtlogin.bind("<Button-1>", self.clearphone)
+        self.txtlogin.place(relx=0.5, rely=0.45, anchor="center", width=250, height=30)
+
+        # خط زیر فیلد شماره تلفن
+        Frame(self.frmloginbd, bg="#1B75BB", width=260, height=2).place(relx=0.5, rely=0.51, anchor="center")
+
+        # لینک ثبت‌نام
+        self.lblregister = Label(
+            self.frmloginbd,
+            text="ثبت ‌نام کاربر",
+            fg="#1B75BB",
+            font=("Arial", 15, "bold"),
+            bg="#FFFFFF",
+            cursor="hand2",
+        )
+        self.lblregister.bind("<Button-1>", self.oneclickRegister)
+        self.lblregister.place(relx=0.5, rely=0.65, anchor="center")
+
+        # دکمه ورود
+        self.btnlogin = Button(
+            self.frmloginbd,
+            text="ورود",
+            command=self.oneclicklogin,
+            bg="#4CAF50",
+            fg="white",
+            font=("Arial", 12, "bold"),
+            bd=0,
+            activebackground="#45A049",
+            activeforeground="white",
+        )
+        self.btnlogin.place(relx=0.5, rely=0.8, anchor="center", width=200, height=40)
+
+
         # -------------------------------------------- Login Dr ---------------------------------------\
+
     def LoginDr(self):
-        self.frmlogindr = Frame(self.screen, width=1500, height=800)
-
-        self.txtlogindr = Entry(self.frmlogindr)
-        self.txtlogindr.configure(bg="white", fg="black", bd=3, justify="center")
-        self.txtlogindr.place(x=650, y=290)
-
-        self.lbllogindr = Label(self.frmlogindr)
-        self.lbllogindr.configure(text="Password", fg="black")
-        self.lbllogindr.place(x=580, y=290)
-
-        self.btnlogindr = Button(self.frmlogindr)
-        self.btnlogindr.configure(text="Login", bg="green", fg="white", bd=3, command=self.oneclicklogindr)
-        self.btnlogindr.place(x=700, y=370)
-
+        # فرم اصلی ورود
+        self.frmlogindr = Frame(self.screen, width=1500, height=800, bg="#1a1a1a")
         self.frmlogindr.place(x=0, y=0)
 
+        # فیلد ورودی رمز عبور (استایل جدید)
+        self.txtlogindr = Entry(self.frmlogindr)
+        self.txtlogindr.configure(bg="#333", fg="#fff", bd=2, font=("Arial", 14), relief="flat", justify="center",
+                                  insertbackground='white', width=25)
+
+        # ایجاد افکت سایه و لبه‌های گرد برای فیلد ورودی
+        self.txtlogindr.config(highlightbackground="black", highlightcolor="#00b8d4", highlightthickness=2)
+
+        # افکت روی فیلد ورودی - زمانی که روی فیلد کلیک می‌شود
+        self.txtlogindr.bind("<FocusIn>", lambda event: self.txtlogindr.config(bg="#444"))
+        self.txtlogindr.bind("<FocusOut>", lambda event: self.txtlogindr.config(bg="#333"))
+
+        self.txtlogindr.place(x=650, y=290)
+
+        # برچسب رمز عبور
+        self.lbllogindr = Label(self.frmlogindr)
+        self.lbllogindr.configure(text="رمز عبور", fg="white", font=("Arial", 16, "bold"), bg='#1a1a1a')
+        self.lbllogindr.place(x=570, y=290)
+
+        # دکمه ورود
+        self.btnlogindr = Button(self.frmlogindr)
+        self.btnlogindr.configure(text="ورود", bg="#4CAF50", fg="white", bd=2, relief="flat",
+                                  font=("Arial", 14, "bold"), command=self.oneclicklogindr)
+        self.btnlogindr.place(x=750, y=350)
 
     def ScreenDr(self):
         self.screendr = Frame(self.frmlogindr, width=1300, height=800)
@@ -865,70 +1176,106 @@ class App(Frame):
     def oneclicklogindr(self):
         if self.txtlogindr.get() == "1234":
             self.ScreenDr()
-
+        else:
+            messagebox.showerror('خطا', 'رمز ورود اشتباه است')
 
     def MenuDr(self):
+        # فرم منو
+        self.menudr = Frame(self.screen, width=400, height=800, bg="#2c3e50")
+        self.menudr.place(x=0, y=0)
 
-        self.amar = Label(self.menudr)
-        self.amar.configure(text="Amar", font="Arial 15 bold")
+        # استایل برای منو و برچسب‌ها
+        label_style = {
+            "font": ("Arial", 16, "bold"),
+            "fg": "#ecf0f1",
+            "bg": "#34495e",
+            "width": 25,
+            "height": 2,
+            "bd": 0,
+            "anchor": "w",
+            "padx": 20,
+            "pady": 10
+        }
+
+        # ایجاد اولین برچسب (امار کاربران)
+        self.amar = Label(self.menudr, text="امار کاربرارن", **label_style)
         self.amar.bind("<Button-1>", self.Amar)
-        self.amar.place(x=40, y=20)
+        self.amar.place(x=0, y=20)
 
-        self.Pr_Shode = Label(self.menudr)
-        self.Pr_Shode.configure(text="Pr_Shode", font="Arial 15 bold")
+        # ایجاد دومین برچسب (پرداخت شده‌ها)
+        self.Pr_Shode = Label(self.menudr, text="پرداخت شده ها", **label_style)
         self.Pr_Shode.bind('<Button-1>', self.dr_prshode)
-        self.Pr_Shode.place(x=40, y=80)
+        self.Pr_Shode.place(x=0, y=80)
 
-        self.Pr_Nashode = Label(self.menudr)
-        self.Pr_Nashode.configure(text="Pr_Nashode", font="Arial 15 bold")
+        # ایجاد سومین برچسب (پرداخت نشده‌ها)
+        self.Pr_Nashode = Label(self.menudr, text="پرداخت نشده", **label_style)
         self.Pr_Nashode.bind('<Button-1>', self.dr_prnashode)
-        self.Pr_Nashode.place(x=40, y=140)
+        self.Pr_Nashode.place(x=0, y=140)
 
-        self.searchdate = Label(self.menudr)
-        self.searchdate.configure(text="Search Date", font="Arial 15 bold")
+        # ایجاد چهارمین برچسب (فعالیت‌های اخیر)
+        self.searchdate = Label(self.menudr, text="فعالیت های اخیر", **label_style)
         self.searchdate.bind("<Button-1>", self.search_date)
-        self.searchdate.place(x=40, y=200)
+        self.searchdate.place(x=0, y=200)
 
-        self.searchuser = Label(self.menudr)
-        self.searchuser.configure(text="Search User", font="Arial 15 bold")
+        # ایجاد پنجمین برچسب (جستجو کاربر)
+        self.searchuser = Label(self.menudr, text="جستجو کاربر", **label_style)
         self.searchuser.bind("<Button-1>", self.search_user)
-        self.searchuser.place(x=40, y=260)
+        self.searchuser.place(x=0, y=260)
 
+        # افزودن انیمیشن برای تغییر رنگ دکمه‌ها هنگام هاور
+        for label in [self.amar, self.Pr_Shode, self.Pr_Nashode, self.searchdate, self.searchuser]:
+            label.bind("<Enter>", lambda e: self.change_color_on_hover(e, "#16a085"))
+            label.bind("<Leave>", lambda e: self.change_color_on_hover(e, "#34495e"))
+
+        # تنظیمات طراحی برای تغییر رنگ هنگام هاور
+        self.menudr.place(x=0, y=0)
+
+    def change_color_on_hover(self, event, color):
+        event.widget.config(bg=color)
 
     def Amar(self, e):
         self.frmamar = Frame(self.screendr, width=1300, height=800, background="black")
         result = self.CountsAmar()
 
+        # برچسب‌ها با استایل‌های جدید
+        label_style = {
+            "background": "#2C3E50",
+            "foreground": "#ECF0F1",
+            "font": ("Arial", 12),
+            "padx": 10,
+            "pady": 5
+        }
+
         self.time_amar = Label(self.frmamar)
-        self.time_amar.configure(fg="white", background="black", font="Arial 15 bold")
+        self.time_amar.configure(**label_style)
         self.time_amar.place(x=935, y=280)
         self.update_timeee()
 
         self.amar_user = Label(self.frmamar)
-        self.amar_user.config(text=f"Total User : {result[0][0][0]}", fg="white", background="black", font="Arial 15 bold")
-        self.amar_user.configure()
+        self.amar_user.config(text=f"تعداد کاربران : {result[0][0][0]}", fg="white", background="black", font="Arial 15 bold")
+        self.amar_user.configure(**label_style)
         self.amar_user.place(x=800, y=400)
 
         self.total_aghsat = Label(self.frmamar)
-        self.total_aghsat.configure(text=f'Total Aghsat : {result[1][0][0]}', fg="white", background="black", font="Arial 15 bold")
+        self.total_aghsat.configure(text=f'تعداد اقساط : {result[1][0][0]}', **label_style)
         self.total_aghsat.place(x=800, y=460)
 
         self.total_aghsatprshode = Label(self.frmamar)
-        self.total_aghsatprshode.configure(text=f'aghsat prshode : {result[3][0][0]}', fg="white", background="black", font="Arial 15 bold")
+        self.total_aghsatprshode.configure(text=f' پرداخت شده : {result[3][0][0]}', **label_style)
         self.total_aghsatprshode.place(x=800, y=520)
 
         self.total_aghsatprnashode = Label(self.frmamar)
-        self.total_aghsatprnashode.configure(text=f'aghsat prnashode : {result[2][0][0]}', fg="white", background="black", font="Arial 15 bold")
+        self.total_aghsatprnashode.configure(text=f'پرداخت نشده : {result[2][0][0]}', **label_style)
         self.total_aghsatprnashode.place(x=800, y=580)
 
         row = ['id', 'name', 'family', 'phone', 'date', 'time']
         self.tblamar = ttk.Treeview(self.frmamar, columns=row, show='headings', height=35)
 
-        self.tblamar.heading('name', text='Name')
-        self.tblamar.heading('family', text='Family')
-        self.tblamar.heading('phone', text='Phone')
-        self.tblamar.heading('date', text='Date')
-        self.tblamar.heading('time', text='Time')
+        self.tblamar.heading('name', text='نام')
+        self.tblamar.heading('family', text='فامیلی')
+        self.tblamar.heading('phone', text='شماره')
+        self.tblamar.heading('date', text='تایخ')
+        self.tblamar.heading('time', text='ساعت')
 
         self.tblamar.column('name', anchor='center', width=150)
         self.tblamar.column('family', anchor='center', width=150)
@@ -1053,60 +1400,69 @@ class App(Frame):
 
     def dr_prshode(self, e):
 
-        self.frmdr_prshode = Frame(self.screendr, width=1300, height=800, bg="black")
+        self.frmdr_prshode = Frame(self.screendr, width=1300, height=800, bg="#2C3E50")
         result = self.countpr_shode()
 
-        self.lblcountday = Label(self.frmdr_prshode, text=f"Total Day: {result[2][0][0]}")
-        self.lblcountday.config(fg="white", bg="black", font=("Helvetica", 14, "bold"))
-        self.lblcountday.place(x=830, y=420)
+        # برچسب‌ها با استایل‌های جدید
+        label_style = {
+            "background": "#2C3E50",
+            "foreground": "#ECF0F1",
+            "font": ("Arial", 12),
+            "padx": 10,
+            "pady": 5
+        }
 
-        self.lblkarmozdday = Label(self.frmdr_prshode, text=f" Karmozd day: {result[3]:,}")
-        self.lblkarmozdday.config(fg="white", bg="black", font=("Helvetica", 14, "bold"))
+        self.lblcountday = Label(self.frmdr_prshode, text=f"تعداد اقساط امروز: {result[2][0][0]}")
+        self.lblcountday.config(**label_style)
+        self.lblcountday.place(x=780, y=420)
+
+        self.lblkarmozdday = Label(self.frmdr_prshode, text=f" کارمزد : {result[3]:,}")
+        self.lblkarmozdday.config(**label_style)
         self.lblkarmozdday.place(x=620, y=460)
 
-        self.lblkolday = Label(self.frmdr_prshode, text=f" price day: {result[4]:,}")
-        self.lblkolday.config(fg="white", bg="black", font=("Helvetica", 14, "bold"))
+        self.lblkolday = Label(self.frmdr_prshode, text=f" پرداختی : {result[4]:,}")
+        self.lblkolday.config(**label_style)
         self.lblkolday.place(x=950, y=460)
 
-        self.lblcountmonth = Label(self.frmdr_prshode, text=f"Total Months: {result[0][0][0]}")
-        self.lblcountmonth.config(fg="white", bg="black", font=("Helvetica", 14, "bold"))
-        self.lblcountmonth.place(x=830, y=500)
+        self.lblcountmonth = Label(self.frmdr_prshode, text=f"تعداد اقساط این ماه: {result[0][0][0]}")
+        self.lblcountmonth.config(**label_style)
+        self.lblcountmonth.place(x=780, y=500)
 
-        self.lblkarmozdmonth = Label(self.frmdr_prshode, text=f" Karmozd Month: {result[5]:,}")
-        self.lblkarmozdmonth.config(fg="white", bg="black", font=("Helvetica", 14, "bold"))
+        self.lblkarmozdmonth = Label(self.frmdr_prshode, text=f" کارمزد : {result[5]:,}")
+        self.lblkarmozdmonth.config(**label_style)
         self.lblkarmozdmonth.place(x=620, y=540)
 
-        self.lblkolmonth = Label(self.frmdr_prshode, text=f" price Month: {result[6]:,}")
-        self.lblkolmonth.config(fg="white", bg="black", font=("Helvetica", 14, "bold"))
+        self.lblkolmonth = Label(self.frmdr_prshode, text=f" پرداختی ها: {result[6]:,}")
+        self.lblkolmonth.config(**label_style)
         self.lblkolmonth.place(x=950, y=540)
 
-        self.lblcountall = Label(self.frmdr_prshode, text=f"Total All: {result[1][0][0]}")
-        self.lblcountall.config(fg="white", bg="black", font=("Helvetica", 14, "bold"))
-        self.lblcountall.place(x=830, y=580)
+        self.lblcountall = Label(self.frmdr_prshode, text=f"کل اقساط: {result[1][0][0]}")
+        self.lblcountall.config(**label_style)
+        self.lblcountall.place(x=780, y=580)
 
-        self.lblkarmozdall = Label(self.frmdr_prshode, text=f" Karmozd all: {result[7]:,}")
-        self.lblkarmozdall.config(fg="white", bg="black", font=("Helvetica", 14, "bold"))
+        self.lblkarmozdall = Label(self.frmdr_prshode, text=f" کارمزد : {result[7]:,}")
+        self.lblkarmozdall.config(**label_style)
         self.lblkarmozdall.place(x=620, y=620)
 
-        self.lblkolall = Label(self.frmdr_prshode, text=f" price all: {result[8]:,}")
-        self.lblkolall.config(fg="white", bg="black", font=("Helvetica", 14, "bold"))
+        self.lblkolall = Label(self.frmdr_prshode, text=f" پرداختی ها: {result[8]:,}")
+        self.lblkolall.config(**label_style)
         self.lblkolall.place(x=950, y=620)
 
-        self.lblkol = Label(self.frmdr_prshode, text=f" kol: {result[9]:,}")
-        self.lblkol.config(fg="white", bg="black", font=("Helvetica", 14, "bold"))
-        self.lblkol.place(x=830, y=660)
+        self.lblkol = Label(self.frmdr_prshode, text=f" مبلغ کلی: {result[9]:,}")
+        self.lblkol.config(**label_style)
+        self.lblkol.place(x=780, y=660)
         baghimande = result[9] - result[8]
 
-        self.lblpardakhti = Label(self.frmdr_prshode, text=f"pardakhti: {result[8]:,}")
-        self.lblpardakhti.config(fg="white", bg="black", font=("Helvetica", 14, "bold"))
+        self.lblpardakhti = Label(self.frmdr_prshode, text=f"پرداختی ها: {result[8]:,}")
+        self.lblpardakhti.config(**label_style)
         self.lblpardakhti.place(x=620, y=700)
 
-        self.lblbaghimande = Label(self.frmdr_prshode, text=f" baghimande: {baghimande:,}")
-        self.lblbaghimande.config(fg="white", bg="black", font=("Helvetica", 14, "bold"))
+        self.lblbaghimande = Label(self.frmdr_prshode, text=f" باقیمانده: {baghimande:,}")
+        self.lblbaghimande.config(**label_style)
         self.lblbaghimande.place(x=950, y=700)
 
-        self.lbltblemroz = Label(self.frmdr_prshode, text="ToDay")
-        self.lbltblemroz.configure(bg="black", fg="white", font="arial 10 bold")
+        self.lbltblemroz = Label(self.frmdr_prshode, text=" اقساط امروز")
+        self.lbltblemroz.configure(**label_style)
         self.lbltblemroz.place(x=300, y=12)
         s = ['row', 'code', 'name', 'phone', 'price', 'karmozd', 'kamel', 'time', 'status', 'num']
 
@@ -1123,22 +1479,18 @@ class App(Frame):
         self.tblprshodeemroz.column("status", width=100, anchor="s")
         self.tblprshodeemroz.column("num", stretch=tk.NO, width=0)
 
-        self.tblprshodeemroz.heading("row", text=s[0])
-        self.tblprshodeemroz.heading("code", text=s[1])
-        self.tblprshodeemroz.heading("name", text=s[2])
-        self.tblprshodeemroz.heading("phone", text=s[3])
-        self.tblprshodeemroz.heading("price", text=s[4])
-        self.tblprshodeemroz.heading("karmozd", text=s[5])
-        self.tblprshodeemroz.heading("kamel", text=s[6])
-        self.tblprshodeemroz.heading("time", text=s[7])
-        self.tblprshodeemroz.heading("status", text=s[8])
-        self.tblprshodeemroz.heading("num", text=s[9])
+        self.tblprshodeemroz.heading("code", text='کد')
+        self.tblprshodeemroz.heading("name", text='نام')
+        self.tblprshodeemroz.heading("phone", text='شماره')
+        self.tblprshodeemroz.heading("price", text='مبلغ قسط')
+        self.tblprshodeemroz.heading("time", text='تاریخ')
+        self.tblprshodeemroz.heading("status", text='وضعیت')
         self.tblprshodeemroz.place(x=10, y=40)
 
         self.inserttblprshodeemroz()
 
-        self.lbltblmonth = Label(self.frmdr_prshode, text="this month")
-        self.lbltblmonth.configure(bg="black", fg="white", font="arial 10 bold")
+        self.lbltblmonth = Label(self.frmdr_prshode, text="اقساط این ماه")
+        self.lbltblmonth.configure(**label_style)
         self.lbltblmonth.place(x=920, y=12)
 
         self.tblprshodemah = ttk.Treeview(self.frmdr_prshode, columns=s, height=17, show="headings")
@@ -1153,20 +1505,16 @@ class App(Frame):
         self.tblprshodemah.column("status", width=100, anchor="s")
         self.tblprshodemah.column("num", stretch=tk.NO, width=0)
 
-        self.tblprshodemah.heading("row", text=s[0])
-        self.tblprshodemah.heading("code", text=s[1])
-        self.tblprshodemah.heading("name", text=s[2])
-        self.tblprshodemah.heading("phone", text=s[3])
-        self.tblprshodemah.heading("price", text=s[4])
-        self.tblprshodemah.heading("karmozd", text=s[5])
-        self.tblprshodemah.heading("kamel", text=s[6])
-        self.tblprshodemah.heading("time", text=s[7])
-        self.tblprshodemah.heading("status", text=s[8])
-        self.tblprshodemah.heading("num", text=s[9])
+        self.tblprshodemah.heading("code", text='کد')
+        self.tblprshodemah.heading("name", text='نام')
+        self.tblprshodemah.heading("phone", text='شماره')
+        self.tblprshodemah.heading("price", text='مبلغ قسط')
+        self.tblprshodemah.heading("time", text='تاریخ')
+        self.tblprshodemah.heading("status", text='وضعیت')
         self.tblprshodemah.place(x=650, y=40)
 
-        self.lbltblmonth = Label(self.frmdr_prshode, text="All Ghest")
-        self.lbltblmonth.configure(bg="black", fg="white", font="arial 10 bold")
+        self.lbltblmonth = Label(self.frmdr_prshode, text="همه قسط ها")
+        self.lbltblmonth.configure(**label_style)
         self.lbltblmonth.place(x=300, y=415)
 
         self.tblprshodekol = ttk.Treeview(self.frmdr_prshode, columns=s, height=15, show="headings")
@@ -1181,16 +1529,12 @@ class App(Frame):
         self.tblprshodekol.column("status", width=100, anchor="s")
         self.tblprshodekol.column("num", stretch=tk.NO, width=0)
 
-        self.tblprshodekol.heading("row", text=s[0])
-        self.tblprshodekol.heading("code", text=s[1])
-        self.tblprshodekol.heading("name", text=s[2])
-        self.tblprshodekol.heading("phone", text=s[3])
-        self.tblprshodekol.heading("price", text=s[4])
-        self.tblprshodekol.heading("karmozd", text=s[5])
-        self.tblprshodekol.heading("kamel", text=s[6])
-        self.tblprshodekol.heading("time", text=s[7])
-        self.tblprshodekol.heading("status", text=s[8])
-        self.tblprshodekol.heading("num", text=s[9])
+        self.tblprshodekol.heading("code", text='کد')
+        self.tblprshodekol.heading("name", text='نام')
+        self.tblprshodekol.heading("phone", text='شماره')
+        self.tblprshodekol.heading("price", text='مبلغ قسط')
+        self.tblprshodekol.heading("time", text='تاریخ')
+        self.tblprshodekol.heading("status", text='وضعیت')
         self.tblprshodekol.place(x=10, y=440)
         self.inserttblprshodekoll()
 
@@ -1255,48 +1599,63 @@ class App(Frame):
 
 
     def dr_prnashode(self, e):
-        self.frmprnashode = Frame(self.screendr, width=1300, height=800, background='black')
+        # فرم اصلی برای پرداخت نشده ها
+        self.frmprnashode = Frame(self.screendr, width=1300, height=800, bg="#2C3E50")
+
+        # گرفتن نتایج از تابع countpr_nashode()
         result = self.countpr_nashode()
 
-        lbltblemroz = Label(self.frmprnashode, text="ToDay")
-        lbltblemroz.configure(bg="black", fg="white", font="arial 10 bold")
+        # برچسب‌ها با استایل‌های جدید
+        label_style = {
+            "background": "#2C3E50",
+            "foreground": "#ECF0F1",
+            "font": ("Arial", 12),
+            "padx": 10,
+            "pady": 5
+        }
+
+        # برچسب "امروز"
+        lbltblemroz = Label(self.frmprnashode, text="امروز", **label_style)
         lbltblemroz.place(x=300, y=12)
 
-        lblcountday = Label(self.frmprnashode, text=f"Total Day: {result[2][0][0]}")
-        lblcountday.config(fg="white", bg="black", font=("Helvetica", 14, "bold"))
-        lblcountday.place(x=830, y=420)
+        # تعداد پرداخت نشده‌های امروز
+        lblcountday = Label(self.frmprnashode, text=f"تعداد پرداخت نشده های امروز: {result[2][0][0]}", **label_style)
+        lblcountday.place(x=780, y=420)
 
-        lblkarmozdday = Label(self.frmprnashode, text=f" Karmozd day: {result[1]:,}")
-        lblkarmozdday.config(fg="white", bg="black", font=("Helvetica", 14, "bold"))
+        # کارمزد امروز
+        lblkarmozdday = Label(self.frmprnashode, text=f"کارمزد: {result[1]:,}", **label_style)
         lblkarmozdday.place(x=620, y=460)
 
-        lblkolday = Label(self.frmprnashode, text=f" price day: {result[0]:,}")
-        lblkolday.config(fg="white", bg="black", font=("Helvetica", 14, "bold"))
+        # مبلغ قسط امروز
+        lblkolday = Label(self.frmprnashode, text=f"مبلغ قسط: {result[0]:,}", **label_style)
         lblkolday.place(x=950, y=460)
 
-        lblcountmonth = Label(self.frmprnashode, text=f"Total Months: {result[5][0][0]}")
-        lblcountmonth.config(fg="white", bg="black", font=("Helvetica", 14, "bold"))
-        lblcountmonth.place(x=830, y=500)
+        # تعداد پرداخت نشده‌های این ماه
+        lblcountmonth = Label(self.frmprnashode, text=f"تعداد پرداخت نشده های این ماه: {result[5][0][0]}", **label_style)
+        lblcountmonth.place(x=780, y=500)
 
-        lblkarmozdmonth = Label(self.frmprnashode, text=f" Karmozd Month: {result[4]:,}")
-        lblkarmozdmonth.config(fg="white", bg="black", font=("Helvetica", 14, "bold"))
+        # کارمزد این ماه
+        lblkarmozdmonth = Label(self.frmprnashode, text=f"کارمزد: {result[4]:,}", fg="white", bg="black", **label_style)
         lblkarmozdmonth.place(x=620, y=540)
 
-        lblkolmonth = Label(self.frmprnashode, text=f" price Month: {result[3]:,}")
-        lblkolmonth.config(fg="white", bg="black", font=("Helvetica", 14, "bold"))
+        # مبلغ قسط این ماه
+        lblkolmonth = Label(self.frmprnashode, text=f"مبلغ قسط: {result[3]:,}", fg="white", bg="black", **label_style)
         lblkolmonth.place(x=950, y=540)
 
-        lblcountall = Label(self.frmprnashode, text=f"Total All: {result[8][0][0]}")
-        lblcountall.config(fg="white", bg="black", font=("Helvetica", 14, "bold"))
-        lblcountall.place(x=830, y=580)
+        # تعداد پرداخت نشده‌های کل
+        lblcountall = Label(self.frmprnashode, text=f"کل پرداخت نشده ها: {result[8][0][0]}", **label_style)
+        lblcountall.place(x=780, y=580)
 
-        lblkarmozdall = Label(self.frmprnashode, text=f" Karmozd all: {result[7]:,}")
-        lblkarmozdall.config(fg="white", bg="black", font=("Helvetica", 14, "bold"))
+        # کارمزد کل
+        lblkarmozdall = Label(self.frmprnashode, text=f"کارمزد: {result[7]:,}", fg="white", bg="black", **label_style)
         lblkarmozdall.place(x=620, y=620)
 
-        lblkolall = Label(self.frmprnashode, text=f" price all: {result[6]:,}")
-        lblkolall.config(fg="white", bg="black", font=("Helvetica", 14, "bold"))
+        # مبلغ قسط کل
+        lblkolall = Label(self.frmprnashode, text=f"مبلغ قسط: {result[6]:,}", fg="white", bg="black", **label_style)
         lblkolall.place(x=950, y=620)
+
+        # نمایش فرم
+        self.frmprnashode.place(x=0, y=0)
 
         s = ['row', 'code', 'name', 'phone', 'price', 'karmozd', 'kamel', 'time', 'status', 'num']
 
@@ -1313,22 +1672,18 @@ class App(Frame):
         self.tblprnashodeemroz.column("status", width=100, anchor="s")
         self.tblprnashodeemroz.column("num", stretch=tk.NO, width=0)
 
-        self.tblprnashodeemroz.heading("row", text=s[0])
-        self.tblprnashodeemroz.heading("code", text=s[1])
-        self.tblprnashodeemroz.heading("name", text=s[2])
-        self.tblprnashodeemroz.heading("phone", text=s[3])
-        self.tblprnashodeemroz.heading("price", text=s[4])
-        self.tblprnashodeemroz.heading("karmozd", text=s[5])
-        self.tblprnashodeemroz.heading("kamel", text=s[6])
-        self.tblprnashodeemroz.heading("time", text=s[7])
-        self.tblprnashodeemroz.heading("status", text=s[8])
-        self.tblprnashodeemroz.heading("num", text=s[9])
+        self.tblprnashodeemroz.heading("code", text='کد')
+        self.tblprnashodeemroz.heading("name", text='نام')
+        self.tblprnashodeemroz.heading("phone", text='شماره')
+        self.tblprnashodeemroz.heading("price", text='مبلغ قسط')
+        self.tblprnashodeemroz.heading("time", text='تاریخ')
+        self.tblprnashodeemroz.heading("status", text='وضعیت')
         self.tblprnashodeemroz.place(x=10, y=40)
 
         self.inserttblornashodeday()
 
-        lbltblmonth = Label(self.frmprnashode, text="this month")
-        lbltblmonth.configure(bg="black", fg="white", font="arial 10 bold")
+        lbltblmonth = Label(self.frmprnashode, text="این ماه")
+        lbltblmonth.configure( **label_style)
         lbltblmonth.place(x=920, y=12)
 
         self.tblprnashodemah = ttk.Treeview(self.frmprnashode, columns=s, height=17, show="headings")
@@ -1343,21 +1698,17 @@ class App(Frame):
         self.tblprnashodemah.column("status", width=100, anchor="s")
         self.tblprnashodemah.column("num", stretch=tk.NO, width=0)
 
-        self.tblprnashodemah.heading("row", text=s[0])
-        self.tblprnashodemah.heading("code", text=s[1])
-        self.tblprnashodemah.heading("name", text=s[2])
-        self.tblprnashodemah.heading("phone", text=s[3])
-        self.tblprnashodemah.heading("price", text=s[4])
-        self.tblprnashodemah.heading("karmozd", text=s[5])
-        self.tblprnashodemah.heading("kamel", text=s[6])
-        self.tblprnashodemah.heading("time", text=s[7])
-        self.tblprnashodemah.heading("status", text=s[8])
-        self.tblprnashodemah.heading("num", text=s[9])
+        self.tblprnashodemah.heading("code", text='کد')
+        self.tblprnashodemah.heading("name", text='نام')
+        self.tblprnashodemah.heading("phone", text='شماره')
+        self.tblprnashodemah.heading("price", text='مبلغ قسط')
+        self.tblprnashodemah.heading("time", text='تاریخ')
+        self.tblprnashodemah.heading("status", text='وضعیت')
         self.tblprnashodemah.place(x=650, y=40)
         self.inserttblprshodemonth()
 
-        lbltblmonth = Label(self.frmprnashode, text="All Ghest")
-        lbltblmonth.configure(bg="black", fg="white", font="arial 10 bold")
+        lbltblmonth = Label(self.frmprnashode, text="همه اقساط")
+        lbltblmonth.configure(**label_style)
         lbltblmonth.place(x=300, y=415)
 
         self.tblprnashodekol = ttk.Treeview(self.frmprnashode, columns=s, height=15, show="headings")
@@ -1372,19 +1723,13 @@ class App(Frame):
         self.tblprnashodekol.column("status", width=100, anchor="s")
         self.tblprnashodekol.column("num", stretch=tk.NO, width=0)
 
-        self.tblprnashodekol.heading("row", text=s[0])
-        self.tblprnashodekol.heading("code", text=s[1])
-        self.tblprnashodekol.heading("name", text=s[2])
-        self.tblprnashodekol.heading("phone", text=s[3])
-        self.tblprnashodekol.heading("price", text=s[4])
-        self.tblprnashodekol.heading("karmozd", text=s[5])
-        self.tblprnashodekol.heading("kamel", text=s[6])
-        self.tblprnashodekol.heading("time", text=s[7])
-        self.tblprnashodekol.heading("status", text=s[8])
-        self.tblprnashodekol.heading("num", text=s[9])
+        self.tblprnashodekol.heading("code", text='کد')
+        self.tblprnashodekol.heading("name", text='نام')
+        self.tblprnashodekol.heading("phone", text='شماره')
+        self.tblprnashodekol.heading("price", text='مبلغ قسط')
+        self.tblprnashodekol.heading("time", text='تاریخ')
+        self.tblprnashodekol.heading("status", text='وضعیت')
         self.tblprnashodekol.place(x=10, y=440)
-
-        self.frmprnashode.place(x=0, y=0)
         self.inserttblprnashodekoll()
 
     def inserttblornashodeday(self):
@@ -1455,34 +1800,50 @@ class App(Frame):
 
         return karmozdday, ghestday, countday, karmozdmonth, ghestmount, countmount, karmozdall, ghestall, allcount
 
-
     def search_date(self, e):
-        self.frmsearchdate = Frame(self.screendr, width=1300, height=800, background="black")
+        self.frmsearchdate = Frame(self.screendr, width=1300, height=800, bg="#2C3E50")
 
         year = jalali_date_now.year
 
+        # استایل برای ورودی سال
         self.txtyear = StringVar()
-        self.year = Entry(self.frmsearchdate, textvariable=self.txtyear, justify='center')
-        self.txtyear.set(f"{year}")
+        self.year = Entry(self.frmsearchdate, textvariable=self.txtyear, justify='center', font=("Arial", 14),
+                          bg="#34495E", fg="white", bd=2, relief="solid", highlightthickness=2,
+                          highlightcolor="#16A085")
+        self.txtyear.set(f"{jalali_date_now.year}")
         self.year.bind("<Button-1>", self.clearyear)
         self.year.place(x=500, y=10)
 
+        # استایل برای ورودی ماه
         self.txtmonth = StringVar()
-        self.month = Entry(self.frmsearchdate, textvariable=self.txtmonth, justify='center')
+        self.month = Entry(self.frmsearchdate, textvariable=self.txtmonth, justify='center', font=("Arial", 14),
+                           bg="#34495E", fg="white", bd=2, relief="solid", highlightthickness=2,
+                           highlightcolor="#16A085")
         self.txtmonth.set("Month")
         self.month.bind("<Button-1>", self.clearmonth)
         self.month.place(x=700, y=10)
 
+        # رادیو باتن‌ها (پرداخت شده، پرداخت نشده، همه)
         self.radiovalues = IntVar()
-        radiopaid = Radiobutton(self.frmsearchdate, text="paid",  value=1, bg="#57524c", variable=self.radiovalues)
-        radionotpaid = Radiobutton(self.frmsearchdate, text="not paid",  value=2, bg="#57524c"
-                                   , variable=self.radiovalues)
-        radioall = Radiobutton(self.frmsearchdate, text="All",  value=3, bg="#57524c", variable=self.radiovalues)
+
+        # تغییر استایل رادیو باتن‌ها با پر شدن رنگ مشکی در حالت پیش‌فرض
+        radiopaid = Radiobutton(self.frmsearchdate, text="پرداخت شده", value=1, bg="black",
+                                font=("Arial", 12, "bold"), fg="red", variable=self.radiovalues,
+                                indicatoron=False)  # indicatoron=False باعث می‌شود که رادیو باتن پر شود.
+        radionotpaid = Radiobutton(self.frmsearchdate, text="پرداخت نشده", value=2, bg="black",
+                                   font=("Arial", 12, "bold"), fg="red", variable=self.radiovalues,
+                                   indicatoron=False)
+        radioall = Radiobutton(self.frmsearchdate, text="همه", value=3, bg="black",
+                               font=("Arial", 12, "bold"), fg="red", variable=self.radiovalues,
+                               indicatoron=False)
+
+        # قرار دادن رادیو باتن‌ها در مکان‌های مشخص شده
         radiopaid.place(x=550, y=50)
         radionotpaid.place(x=650, y=50)
         radioall.place(x=770, y=50)
 
-        self.btnoksearchdate = Button(self.frmsearchdate, text="Search", bg="#57524c", command=self.oneclicksearchdate)
+        self.btnoksearchdate = Button(self.frmsearchdate, text="جستجو", bg="#16A085", fg="white",
+                                      font=("Arial", 14, "bold"), bd=0, relief="flat", command=self.oneclicksearchdate)
         self.btnoksearchdate.place(x=650, y=100)
 
         s = ['row', 'code', 'name', 'phone', 'price', 'karmozd', 'kamel', 'time', 'status', 'num']
@@ -1499,39 +1860,39 @@ class App(Frame):
         self.tblsearchdate.column("status", width=100, anchor="s")
         self.tblsearchdate.column("num", stretch=tk.NO, width=0)
 
-        self.tblsearchdate.heading("row", text=s[0])
-        self.tblsearchdate.heading("code", text=s[1])
-        self.tblsearchdate.heading("name", text=s[2])
-        self.tblsearchdate.heading("phone", text=s[3])
-        self.tblsearchdate.heading("price", text=s[4])
-        self.tblsearchdate.heading("karmozd", text=s[5])
-        self.tblsearchdate.heading("kamel", text=s[6])
-        self.tblsearchdate.heading("time", text=s[7])
-        self.tblsearchdate.heading("status", text=s[8])
-        self.tblsearchdate.heading("num", text=s[9])
+        self.tblsearchdate.heading("code", text='کد')
+        self.tblsearchdate.heading("name", text='نام')
+        self.tblsearchdate.heading("phone", text='شماره')
+        self.tblsearchdate.heading("price", text='مبلغ قسط')
+        self.tblsearchdate.heading("time", text='تاریخ')
+        self.tblsearchdate.heading("status", text='وضعیت')
         self.tblsearchdate.place(x=370, y=150)
 
-        self.lblcountsearch = Label(self.frmsearchdate)
-        self.lblcountsearch.config(fg="white", bg="black", font=("Helvetica", 14, "bold"))
+        # برچسب‌های نتیجه جستجو
+        self.lblcountsearch = Label(self.frmsearchdate, fg="white", bg="#34495E", font=("Helvetica", 14, "bold"),
+                                    pady=5, padx=10, relief="solid", bd=2)
         self.lblcountsearch.place_forget()
 
-        self.lblkarmozdsearchshode = Label(self.frmsearchdate)
-        self.lblkarmozdsearchshode.config(fg="white", bg="black", font=("Helvetica", 14, "bold"))
+        self.lblkarmozdsearchshode = Label(self.frmsearchdate, fg="white", bg="#34495E", font=("Helvetica", 14, "bold"),
+                                           pady=5, padx=10, relief="solid", bd=2)
         self.lblkarmozdsearchshode.place_forget()
 
-        self.lblallpricesearchshode = Label(self.frmsearchdate)
-        self.lblallpricesearchshode.config(fg="white", bg="black", font=("Helvetica", 14, "bold"))
+        self.lblallpricesearchshode = Label(self.frmsearchdate, fg="white", bg="#34495E",
+                                            font=("Helvetica", 14, "bold"), pady=5, padx=10, relief="solid", bd=2)
         self.lblallpricesearchshode.place_forget()
 
-        self.lblkarmozdsearchnashode = Label(self.frmsearchdate)
-        self.lblkarmozdsearchnashode.config(fg="white", bg="black", font=("Helvetica", 14, "bold"))
+        self.lblkarmozdsearchnashode = Label(self.frmsearchdate, fg="white", bg="#34495E",
+                                             font=("Helvetica", 14, "bold"), pady=5, padx=10, relief="solid", bd=2)
         self.lblkarmozdsearchnashode.place_forget()
 
-        self.lblallpricesearchnashode = Label(self.frmsearchdate)
-        self.lblallpricesearchnashode.config(fg="white", bg="black", font=("Helvetica", 14, "bold"))
+        self.lblallpricesearchnashode = Label(self.frmsearchdate, fg="white", bg="#34495E",
+                                              font=("Helvetica", 14, "bold"), pady=5, padx=10, relief="solid", bd=2)
         self.lblallpricesearchnashode.place_forget()
 
+        # قرار دادن فرم در صفحه
         self.frmsearchdate.place(x=0, y=0)
+
+        # اعمال تنظیمات اضافی
         self.cleartblsearchdata()
         self.defult()
 
@@ -1582,8 +1943,8 @@ class App(Frame):
         user = Repository()
         if self.radiovalues.get() == 1:
             countmount = user.CountaghsatMonth(self.year.get(), self.month.get(), "paid")
-            self.lblcountsearch.config(text=f"Total : {countmount[0][0]}")
-            self.lblcountsearch.place(x=630, y=690)
+            self.lblcountsearch.config(text=f"تعداد اقساط پرداخت شده این ماه : {countmount[0][0]}")
+            self.lblcountsearch.place(x=550, y=690)
             pricemonth = user.allusersmonth("aghsat", self.year.get(), self.month.get(), "paid")
             karmozd = 0
             all1 = 0
@@ -1593,15 +1954,15 @@ class App(Frame):
                 karmozd += int(a)
                 all1 += int(b)
             self.lblkarmozdsearchshode.place(x=350, y=730)
-            self.lblkarmozdsearchshode.config(text=f"Karmozd : {karmozd:,}")
+            self.lblkarmozdsearchshode.config(text=f"کارمزد : {karmozd:,}")
             self.lblallpricesearchshode.place(x=800, y=730)
-            self.lblallpricesearchshode.config(text=f"all : {all1:,}")
+            self.lblallpricesearchshode.config(text=f"مبلغ کل : {all1:,}")
             self.lblkarmozdsearchnashode.place_forget()
             self.lblallpricesearchnashode.place_forget()
         elif self.radiovalues.get() == 2:
             countmount = user.CountaghsatMonth(self.year.get(), self.month.get(), "not paid")
-            self.lblcountsearch.place(x=630, y=690)
-            self.lblcountsearch.config(text=f"Total : {countmount[0][0]}")
+            self.lblcountsearch.place(x=550, y=690)
+            self.lblcountsearch.config(text=f"تعداد پرداخت نشده های این ماه : {countmount[0][0]}")
             pricemonth = user.allusersmonth("aghsat", self.year.get(), self.month.get(), "not paid")
             karmozd = 0
             all1 = 0
@@ -1611,19 +1972,17 @@ class App(Frame):
                 karmozd += int(a)
                 all1 += int(b)
             self.lblkarmozdsearchshode.place(x=350, y=730)
-            self.lblkarmozdsearchshode.config(text=f"Karmozd : {karmozd:,}")
+            self.lblkarmozdsearchshode.config(text=f"کارمزد : {karmozd:,}")
             self.lblallpricesearchshode.place(x=800, y=730)
-            self.lblallpricesearchshode.config(text=f"all : {all1:,}")
+            self.lblallpricesearchshode.config(text=f"مبلغ کل : {all1:,}")
             self.lblkarmozdsearchnashode.place_forget()
             self.lblallpricesearchnashode.place_forget()
         elif self.radiovalues.get() == 3:
             self.cleartblsearchdata()
             countmount = user.CountaghsatMonth2(self.year.get(), self.month.get())
-            self.lblcountsearch.place(x=630, y=690)
-            self.lblcountsearch.config(text=f"Total : {countmount[0][0]}")
-            year = jalali_date_now.year
-            month = jalali_date_now.month
-            pricemonth = user.allusersmonth2("aghsat", year, month)
+            self.lblcountsearch.place(x=550, y=690)
+            self.lblcountsearch.config(text=f"تعداد پرداخت شده و نشده های این ماه : {countmount[0][0]}")
+            pricemonth = user.allusersmonth2("aghsat", self.year.get(), self.month.get())
             karmozdprshode = 0
             karmozdprnashode = 0
 
@@ -1643,13 +2002,13 @@ class App(Frame):
                     allprnashode += int(b)
 
             self.lblkarmozdsearchshode.place(x=350, y=730)
-            self.lblkarmozdsearchshode.config(text=f"k_prshode : {karmozdprshode:,}")
+            self.lblkarmozdsearchshode.config(text=f"کارمزد پرداخت شده : {karmozdprshode:,}")
             self.lblallpricesearchshode.place(x=800, y=730)
-            self.lblallpricesearchshode.config(text=f"all_prshode : {allprshode:,}")
+            self.lblallpricesearchshode.config(text=f"اقساط پرداخت شده : {allprshode:,}")
             self.lblkarmozdsearchnashode.place(x=350, y=770)
-            self.lblkarmozdsearchnashode.config(text=f"k_prnashode : {karmozdprnashode:,}")
+            self.lblkarmozdsearchnashode.config(text=f"کارمزد پرداخت نشده : {karmozdprnashode:,}")
             self.lblallpricesearchnashode.place(x=800, y=770)
-            self.lblallpricesearchnashode.config(text=f"all_prnashode : {allprnashode:,}")
+            self.lblallpricesearchnashode.config(text=f"اقساط پرداخت نشده : {allprnashode:,}")
 
     def defult(self):
         user = Repository()
@@ -1678,53 +2037,84 @@ class App(Frame):
                 allprnashode += int(b)
 
         self.lblkarmozdsearchshode.place(x=350, y=730)
-        self.lblkarmozdsearchshode.config(text=f"k_prshode : {karmozdprshode:,}")
+        self.lblkarmozdsearchshode.config(text=f"کارمزد پرداخت شده : {karmozdprshode:,}")
         self.lblallpricesearchshode.place(x=800, y=730)
-        self.lblallpricesearchshode.config(text=f"all_prshode : {allprshode:,}")
+        self.lblallpricesearchshode.config(text=f"اقساط پرداخت شده : {allprshode:,}")
         self.lblkarmozdsearchnashode.place(x=350, y=770)
-        self.lblkarmozdsearchnashode.config(text=f"k_prnashode : {karmozdprnashode:,}")
+        self.lblkarmozdsearchnashode.config(text=f"کارمزد پرداخت نشده : {karmozdprnashode:,}")
         self.lblallpricesearchnashode.place(x=800, y=770)
-        self.lblallpricesearchnashode.config(text=f"all_prnashode : {allprnashode:,}")
+        self.lblallpricesearchnashode.config(text=f"اقساط پرداخت نشده : {allprnashode:,}")
 
     def search_user(self, e):
-        self.frmsearchuser = Frame(self.screendr, bg="black", width=1300, height=800)
+        # فرم جستجو
+        self.frmsearchuser = Frame(self.screendr, bg="#2C3E50", width=1300, height=800)
 
-        self.txtsearchuser = Entry(self.frmsearchuser, justify="center")
-        self.txtsearchuser.place(x=1130, y=10)
-        self.btnsearchuser = Button(self.frmsearchuser, text="Search", command=self.oneclicksearch)
-        self.btnsearchuser.place(x=1050, y=10)
+        # استایل برای کادر جستجو
+        self.txtsearchuser = Entry(self.frmsearchuser, justify="center", font=("Arial", 14), bg="#34495E", fg="white",
+                                   bd=2, relief="solid", highlightthickness=2, highlightcolor="#16A085")
+        self.txtsearchuser.place(x=1050, y=10)
 
-        self.lblname = Label(self.frmsearchuser, background='black', foreground="white", font=("Arial", 12))
+        # دکمه جستجو
+        self.btnsearchuser = Button(self.frmsearchuser, text="جستجو", command=self.oneclicksearch,
+                                    font=("Arial", 12, "bold"), bg="#16A085", fg="white", bd=0, relief="flat", padx=15,
+                                    pady=10)
+        self.btnsearchuser.place(x=970, y=10)
+
+        # برچسب‌ها با استایل‌های جدید
+        label_style = {
+            "background": "#2C3E50",
+            "foreground": "#ECF0F1",
+            "font": ("Arial", 12),
+            "padx": 10,
+            "pady": 5
+        }
+
+        # نام
+        self.lblname = Label(self.frmsearchuser, text="نام:", **label_style)
         self.lblname.place(x=1000, y=100)
 
-        self.lblphone = Label(self.frmsearchuser, background='black', foreground="white", font=("Arial", 12))
+        # تلفن
+        self.lblphone = Label(self.frmsearchuser, text="تلفن:", **label_style)
         self.lblphone.place(x=1000, y=140)
 
-        self.lblprshode = Label(self.frmsearchuser, background='black', foreground="white",
-                              font=("Arial", 12))
+        # پرداخت شده‌ها
+        self.lblprshode = Label(self.frmsearchuser, text="پرداخت شده:", **label_style)
         self.lblprshode.place(x=650, y=380)
 
-        self.lblkarmozdprshode = Label(self.frmsearchuser, background='black', foreground="white",
-                                font=("Arial", 12))
+        # کارمزد پرداخت شده‌ها
+        self.lblkarmozdprshode = Label(self.frmsearchuser, text="کارمزد:", **label_style)
         self.lblkarmozdprshode.place(x=500, y=440)
 
-        self.lblallprshode = Label(self.frmsearchuser, background='black', foreground="white",
-                                       font=("Arial", 12))
+        # مبلغ کل پرداخت شده‌ها
+        self.lblallprshode = Label(self.frmsearchuser, text="مبلغ کل:", **label_style)
         self.lblallprshode.place(x=850, y=440)
 
-        self.lblprnashode = Label(self.frmsearchuser, background='black', foreground="white",
-                                font=("Arial", 12))
+        # پرداخت نشده‌ها
+        self.lblprnashode = Label(self.frmsearchuser, text="پرداخت نشده:", **label_style)
         self.lblprnashode.place(x=650, y=500)
 
-        self.lblkarmozdprnashode = Label(self.frmsearchuser, background='black', foreground="white",
-                                       font=("Arial", 12))
+        # کارمزد پرداخت نشده‌ها
+        self.lblkarmozdprnashode = Label(self.frmsearchuser, text="کارمزد:", **label_style)
         self.lblkarmozdprnashode.place(x=500, y=560)
 
-        self.lblallprnashode = Label(self.frmsearchuser, background='black', foreground="white",
-                                   font=("Arial", 12))
+        # مبلغ کل پرداخت نشده‌ها
+        self.lblallprnashode = Label(self.frmsearchuser, text="مبلغ کل:", **label_style)
         self.lblallprnashode.place(x=850, y=560)
 
-        lblaghsat = Label(self.frmsearchuser, text='Aghsat')
+        # اضافه کردن افکت hover برای دکمه
+        self.btnsearchuser.bind("<Enter>", lambda e: e.widget.config(bg="#1ABC9C"))
+        self.btnsearchuser.bind("<Leave>", lambda e: e.widget.config(bg="#16A085"))
+
+        # اضافه کردن افکت hover برای فیلد جستجو
+        self.txtsearchuser.bind("<Enter>", lambda e: e.widget.config(bg="#16A085"))
+        self.txtsearchuser.bind("<Leave>", lambda e: e.widget.config(bg="#34495E"))
+
+        # اضافه کردن سایه به برچسب‌ها برای تاثیر عمق
+        for label in [self.lblname, self.lblphone, self.lblprshode, self.lblkarmozdprshode, self.lblallprshode,
+                      self.lblprnashode, self.lblkarmozdprnashode, self.lblallprnashode]:
+            label.config(highlightthickness=1, highlightbackground="#16A085")
+
+        lblaghsat = Label(self.frmsearchuser, text='اقساط')
         lblaghsat.place(x=200, y=10)
         s = ['row', 'code', 'name', 'phone', 'price', 'karmozd', 'kamel', 'time', 'status', 'num']
 
@@ -1740,13 +2130,13 @@ class App(Frame):
         self.tblsearchuserghest.column("status", width=110, anchor="s")
         self.tblsearchuserghest.column("num", stretch=tk.NO, width=0)
 
-        self.tblsearchuserghest.heading("code", text=s[1])
-        self.tblsearchuserghest.heading("price", text=s[4])
-        self.tblsearchuserghest.heading("time", text=s[7])
-        self.tblsearchuserghest.heading("status", text=s[8])
+        self.tblsearchuserghest.heading("code", text='کد')
+        self.tblsearchuserghest.heading("price", text='مبلغ قسط')
+        self.tblsearchuserghest.heading("time", text='تاریخ')
+        self.tblsearchuserghest.heading("status", text='وضعیت')
         self.tblsearchuserghest.place(x=10, y=40)
 
-        lbldevice= Label(self.frmsearchuser, text='Device')
+        lbldevice = Label(self.frmsearchuser, text='دستگاها')
         lbldevice.place(x=200, y=370)
 
         a = ['row', 'code', 'name', 'phone', 'serial', 'price', 'model']
@@ -1759,13 +2149,13 @@ class App(Frame):
         self.tblsearchuserdevice.column('price', width=100, anchor='s')
         self.tblsearchuserdevice.column('model', width=130, anchor='s')
 
-        self.tblsearchuserdevice.heading('code', text=a[1])
-        self.tblsearchuserdevice.heading('serial', text=a[4])
-        self.tblsearchuserdevice.heading('price', text=a[5])
-        self.tblsearchuserdevice.heading('model', text=a[6])
+        self.tblsearchuserdevice.heading('code', text='کد')
+        self.tblsearchuserdevice.heading('serial', text='سریال')
+        self.tblsearchuserdevice.heading('price', text='مبلغ')
+        self.tblsearchuserdevice.heading('model', text='مدل')
         self.tblsearchuserdevice.place(x=10, y=400)
 
-        lbltype = Label(self.frmsearchuser, text='check or tala')
+        lbltype = Label(self.frmsearchuser, text='چک و طلا')
         lbltype.place(x=680, y=10)
 
         b = ['row', 'code', 'name', 'phone', 'type', 'type / serial', 'g / m']
@@ -1778,19 +2168,19 @@ class App(Frame):
         self.tblsearchusertype.column('type / serial', width=150, anchor='s')
         self.tblsearchusertype.column('g / m', width=130, anchor='s')
 
-        self.tblsearchusertype.heading('code', text=b[1])
-        self.tblsearchusertype.heading('type', text=b[4])
-        self.tblsearchusertype.heading('type / serial', text=b[5])
-        self.tblsearchusertype.heading('g / m', text=b[6])
+        self.tblsearchusertype.heading('code', text='کد')
+        self.tblsearchusertype.heading('type', text='نوع')
+        self.tblsearchusertype.heading('type / serial', text='نوع / سریال')
+        self.tblsearchusertype.heading('g / m', text='گرم / مبلغ')
         self.tblsearchusertype.place(x=500, y=40)
 
         self.frmsearchuser.place(x=0, y=0)
 
     def oneclicksearch(self):
         if self.txtsearchuser.get() == '':
-            messagebox.showwarning(title='Warning', message='Please enter a valid number')
+            messagebox.showwarning(title='خطا', message='فید جستجو خالی است')
         elif not self.txtsearchuser.get().isdigit():
-            messagebox.showwarning(title='Warning', message='Please enter a valid number')
+            messagebox.showwarning(title='Warning', message='فیلد جسنجو را با عدد پر کنید')
         else:
             self.clearalltablesearch()
             self.insertdatasearchuseraghsat()
@@ -1803,11 +2193,11 @@ class App(Frame):
         result = user.Exist("aghsat", self.txtsearchuser.get())
         if result:
             for item in result:
-                self.lblname.configure(text=f"name : {item[2]}")
-                self.lblphone.configure(text=f"Phone : {item[3]}")
+                self.lblname.configure(text=f"نام : {item[2]}")
+                self.lblphone.configure(text=f"شماره : {item[3]}")
                 self.tblsearchuserghest.insert('', 'end', values=item)
         else:
-            messagebox.showwarning(title='Warning', message='not user')
+            messagebox.showwarning(title='خطا', message='کاربر پیدا نشد')
 
     def insertdatatblsearchdevice(self):
         user = Repository()
@@ -1854,12 +2244,12 @@ class App(Frame):
                 b = item[4].replace(",", "")
                 allkarmozdprnashode += int(b)
 
-        self.lblprshode.configure(text=f"پرداخت شده ها : {result[0][0]}", justify="right")
-        self.lblprnashode.configure(text=f"Total pr_nashode : {result1[0][0]}")
-        self.lblkarmozdprshode.configure(text=f"karmozed : {karmozdprshode:,}")
-        self.lblkarmozdprnashode.configure(text=f"karmozed : {karmozdprnashode:,}")
-        self.lblallprshode.configure(text=f"all price : {allpriceprshode:,}")
-        self.lblallprnashode.configure(text=f"all price : {allkarmozdprnashode:,}")
+        self.lblprshode.configure(text=f"پرداخت شده ها : {result[0][0]}")
+        self.lblprnashode.configure(text=f"پرداخت نشده ها : {result1[0][0]}")
+        self.lblkarmozdprshode.configure(text=f"کارمزد : {karmozdprshode:,}")
+        self.lblkarmozdprnashode.configure(text=f"کارمزد : {karmozdprnashode:,}")
+        self.lblallprshode.configure(text=f"مبلغ کل : {allpriceprshode:,}")
+        self.lblallprnashode.configure(text=f"مبلغ کل : {allkarmozdprnashode:,}")
 
 
 
