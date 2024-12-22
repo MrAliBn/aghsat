@@ -155,3 +155,17 @@ class Repository:
             records = cursor.fetchall()
             return records
 
+    def alldevice(self, data, phone, model):
+        with connection.cursor() as cursor:
+            sql_insert_query = f"""SELECT * FROM {data} where phone = %s and model = %s"""
+            cursor.execute(sql_insert_query, (phone, model))
+            records = cursor.fetchall()
+            return records
+
+    def Existaghsatcode(self, data, code):
+        with connection.cursor() as cursor:
+            sql_insert_query = f"""select * from {data} where code = %s"""
+            cursor.execute(sql_insert_query, (code,))
+            records = cursor.fetchall()
+            return records
+

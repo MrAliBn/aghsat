@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <!-- هد -->
+
+    <head>
+        <meta charset="UTF-8">
+        <title>اقساط نیک تل</title>
+    </head>
+
+     <!-- style ha -->
+
+    <style>
+        * {
+            justify-items: center;
+        }
+        body{
+            justify-items: center;
+            border: 2px solid black;
+            width: 80%;
+            height: 100%;
+        }
+        #background{
+            direction: rtl;
+            background: white;
+            width: 100%;
+            justify-items: baseline;
+        }
+
+        .button {
+            background-color: #95dc9a;
+            color: black;
+            border: none;
+            padding: 10px 10px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+
+        button:hover {
+            background-color: #fffdfd;
+            border: 1px solid black;
+        }
+        p {
+            padding: 5px 20px 5px 0;
+        }
+         table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 18px;
+            text-align: center;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+        th {
+            background-color: #f4f4f4;
+            font-weight: bold;
+        }
+        .tabale{
+            width: 80%;
+        }
+        strong{
+            font: 20px bold;
+        }
+
+    </style>
+
+
+     <!-- body html -->
+
+
+    <body>
+        <h1>سر رسید اقساط</h1>
+        <div id="background">
+            <p><strong>نام و نام خانوادگی خریدار : </strong>{{username}}</p>
+            <p><strong>مدل دستگاه : </strong>{{model}}</p>
+            <p><strong>سریال دستگاه : </strong>{{serial}}</p>
+            <p><strong>شماره تماس : </strong>{{phone}}</p>
+            <p><strong>مبلغ پیش پرداخت : </strong></p>
+            <p><strong>مبلغ بدهی (با احتساب کارمزد ماهیانه) : </strong>{{kol}}</p>
+        </div>
+        <div class="tabale">
+            <table>
+                <thead>
+                    <tr>
+                        <th>کد موبایل</th>
+                        <th>تاریخ اقساط</th>
+                        <th>مبلغ اقساط</th>
+                        <th>شماره اقساط</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- داده‌ها اینجا داینامیک اضافه می‌شوند -->
+                </tbody>
+            </table>
+        </div>
+        <br>
+        <button class="button" onclick="printPage()">Print</button>
+    </body>
+
+
+     <!-- java scripts -->
+
+     <script type="text/javascript">
+            function printPage() {
+                window.print()
+            }
+        </script>
+
+
+</html>

@@ -1,11 +1,19 @@
 import mysql.connector
 
+import mysql.connector
+
 connection = mysql.connector.connect(
-    host='localhost',
-    database='User',
-    user='root',
-    password='7804'
+    host="localhost",
+    user="root",
+    password="7804",
+    database="user",
+    auth_plugin="mysql_native_password"  # استفاده از پلاگین mysql_native_password
 )
+
+cursor = connection.cursor()
+cursor.execute("SELECT DATABASE();")
+result = cursor.fetchone()
+print(f"Connected to database: {result}")
 
 
 create_users_table = """

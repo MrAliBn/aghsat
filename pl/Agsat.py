@@ -1,17 +1,17 @@
-from shutil import which
 from tkinter import messagebox, ttk
 from tkinter import *
 import tkinter as tk
 import time
-from tkinter.ttk import Treeview
-
 import jdatetime
 import math
 from dal.repository import Repository
 from time import strftime
 from persiantools.jdatetime import JalaliDate
 import random
-from collections import Counter
+import webbrowser
+import os
+import urllib.parse
+
 
 
 jalali_date_now = JalaliDate.today()
@@ -87,7 +87,7 @@ class App(Frame):
 
             # عنوان فرم
             self.mtnuser = Label(self.frmsabtaghsat, text="کاربر", fg="#333", font=("Arial", 24, "bold"), bg="#F4F4F4")
-            self.mtnuser.place(x=600, y=20)
+            self.mtnuser.place(x=700, y=40)
 
             # نام کاربری
             Name = StringVar()
@@ -157,7 +157,7 @@ class App(Frame):
             self.mtnaghsat = Label(
                 self.frmsabtaghsat, text="اقساط", fg="#333", font=("Arial", 20, "bold"), bg="#F4F4F4"
             )
-            self.mtnaghsat.place(x=600, y=220)
+            self.mtnaghsat.place(x=700, y=240)
 
             # تاریخ اولین قسط
             self.txtstartgest = Entry(
@@ -893,20 +893,98 @@ class App(Frame):
         self.lblsabtaghsat = Label(self.frmmenu, text=" اطلاعات اقساط ")
         self.lblsabtaghsat.configure(**label_style)
         self.lblsabtaghsat.bind("<Button-1>", self.clickinfoaghsat)
-        self.lblsabtaghsat.place(x=0, y=100)
+        self.lblsabtaghsat.place(x=0, y=50)
 
         self.lblinfoaghsat = Label(self.frmmenu, text="ثبت اقساط")
         self.lblinfoaghsat.configure(**label_style)
         self.lblinfoaghsat.bind("<Button-1>", self.clicksabtaghsat)
-        self.lblinfoaghsat.place(x=0, y=50)
+        self.lblinfoaghsat.place(x=0, y=120)
+
+        self.lblprint = Label(self.frmmenu, text="پرینت")
+        self.lblprint.configure(**label_style)
+        self.lblprint.bind("<Button-1>", self.clickprint)
+        self.lblprint.place(x=0, y=190)
 
         self.frmscreenuser.place(x=0, y=0)
 
-        for label in [self.lblsabtaghsat, self.lblinfoaghsat]:
+        for label in [self.lblsabtaghsat, self.lblinfoaghsat, self.lblprint]:
             label.bind("<Enter>", lambda e: self.change_color_on_hover(e, "#16a085"))
             label.bind("<Leave>", lambda e: self.change_color_on_hover(e, "#34495e"))
 
         self.frmmenu.place(x=1300, y=0)
+
+    def clickprint(self, e):
+        # فریم پرینت
+        self.frmmenuprint = Frame(self.frmscreenuser, width=1300, height=800, bg="white")
+        self.frmmenuprint.place(x=0, y=0)
+
+        result = self.insertvaluecombomodel()
+        # افزودن کامبوباکس
+        self.listmodel = []
+
+        self.listmodel.append(result)
+
+        self.combomodel = ttk.Combobox(self.frmmenuprint, state='readonly', justify='center')
+        self.combomodel['values'] = self.listmodel
+        self.combomodel.set(self.listmodel[0])
+        self.combomodel.place(x=1000, y=20)
+
+        # دکمه پرینت
+        self.btnprint = Button(self.frmmenuprint, text="پرینت", command=self.print_dialog)
+        self.btnprint.place(x=600, y=500)
+
+    def print_dialog(self):
+        try:
+            # مسیر فایل HTML
+            html_file_path = os.path.join(os.getcwd(), 'html/index.html')
+            # خواندن محتوای HTML از فایل
+            with open(html_file_path, 'r', encoding='utf-8') as html_file:
+                html_content = html_file.read()
+
+            user = Repository()
+            result = user.alldevice("device", self.Phone.get(), self.combomodel.get())
+            print(result[0])
+            result1 = user.Existaghsatcode('aghsat', result[0][1])
+            table_rows = ""
+            num = 0
+            for row in result1:
+                num += 1
+                table_rows += f"""
+                            <tr>
+                                <td>{row[1]}</td>
+                                <td>{row[7]}</td>
+                                <td>{row[4]}</td>
+                                <td>{num}</td>
+                            </tr>
+                        """
+            html_content = html_content.replace("<!-- داده‌ها اینجا داینامیک اضافه می‌شوند -->", table_rows)
+
+            # جایگزینی مقدار متغیر در HTML
+
+            html_content = html_content.replace("{{model}}", result[0][6])
+            html_content = html_content.replace("{{serial}}", result[0][4])
+            html_content = html_content.replace("{{username}}", result[0][2])
+            html_content = html_content.replace("{{phone}}", result[0][3])
+            html_content = html_content.replace("{{kol}}", result[0][5])
+            # تبدیل محتوای HTML به فرمت URL-safe برای استفاده در مرورگر
+            encoded_html = urllib.parse.quote(html_content)
+
+
+            # مسیر مرورگر Chrome (این مسیر برای ویندوز است، آن را با مسیر صحیح سیستم خود تغییر دهید)
+            chrome_path = "C:/Program Files/Google/Chrome/Application/chrome.exe"
+
+            # باز کردن محتوای HTML در مرورگر Chrome
+            webbrowser.get(f'"{chrome_path}" %s').open(f"data:text/html;charset=utf-8,{encoded_html}")
+
+        except Exception as e:
+            print(f"Error: {e}")
+
+    def insertvaluecombomodel(self):
+        user = Repository()
+        result = user.Exist('device', self.Phone.get())
+        for item in result:
+            return item[6]
+
 
     # -------------------------------------------- Register User ---------------------------------------
 
@@ -1200,7 +1278,7 @@ class App(Frame):
         # ایجاد اولین برچسب (امار کاربران)
         self.amar = Label(self.menudr, text="امار کاربرارن", **label_style)
         self.amar.bind("<Button-1>", self.Amar)
-        self.amar.place(x=0, y=20)
+        self.amar.place(x=0, y=10)
 
         # ایجاد دومین برچسب (پرداخت شده‌ها)
         self.Pr_Shode = Label(self.menudr, text="پرداخت شده ها", **label_style)
@@ -1210,17 +1288,17 @@ class App(Frame):
         # ایجاد سومین برچسب (پرداخت نشده‌ها)
         self.Pr_Nashode = Label(self.menudr, text="پرداخت نشده", **label_style)
         self.Pr_Nashode.bind('<Button-1>', self.dr_prnashode)
-        self.Pr_Nashode.place(x=0, y=140)
+        self.Pr_Nashode.place(x=0, y=150)
 
         # ایجاد چهارمین برچسب (فعالیت‌های اخیر)
         self.searchdate = Label(self.menudr, text="فعالیت های اخیر", **label_style)
         self.searchdate.bind("<Button-1>", self.search_date)
-        self.searchdate.place(x=0, y=200)
+        self.searchdate.place(x=0, y=220)
 
         # ایجاد پنجمین برچسب (جستجو کاربر)
         self.searchuser = Label(self.menudr, text="جستجو کاربر", **label_style)
         self.searchuser.bind("<Button-1>", self.search_user)
-        self.searchuser.place(x=0, y=260)
+        self.searchuser.place(x=0, y=290)
 
         # افزودن انیمیشن برای تغییر رنگ دکمه‌ها هنگام هاور
         for label in [self.amar, self.Pr_Shode, self.Pr_Nashode, self.searchdate, self.searchuser]:
