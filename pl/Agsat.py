@@ -925,9 +925,13 @@ class App(Frame):
         self.listmodel.append(result)
 
         self.combomodel = ttk.Combobox(self.frmmenuprint, state='readonly', justify='center')
-        self.combomodel['values'] = self.listmodel
-        self.combomodel.set(self.listmodel[0])
         self.combomodel.place(x=1000, y=20)
+        try:
+            self.combomodel['values'] = self.listmodel
+            self.combomodel.set(self.listmodel[0])
+        except Exception as e:
+            print(e)
+
 
         # دکمه پرینت
         self.btnprint = Button(self.frmmenuprint, text="پرینت", command=self.print_dialog)
@@ -943,7 +947,6 @@ class App(Frame):
 
             user = Repository()
             result = user.alldevice("device", self.Phone.get(), self.combomodel.get())
-            print(result[0])
             result1 = user.Existaghsatcode('aghsat', result[0][1])
             table_rows = ""
             num = 0
@@ -970,11 +973,8 @@ class App(Frame):
             encoded_html = urllib.parse.quote(html_content)
 
 
-            # مسیر مرورگر Chrome (این مسیر برای ویندوز است، آن را با مسیر صحیح سیستم خود تغییر دهید)
-            chrome_path = "C:/Program Files/Google/Chrome/Application/chrome.exe"
-
-            # باز کردن محتوای HTML در مرورگر Chrome
-            webbrowser.get(f'"{chrome_path}" %s').open(f"data:text/html;charset=utf-8,{encoded_html}")
+            # باز کردن محتوای HTML در مرورگر پیش‌فرض
+            webbrowser.open(f"data:text/html;charset=utf-8,{encoded_html}")
 
         except Exception as e:
             print(f"Error: {e}")
