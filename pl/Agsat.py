@@ -11,6 +11,8 @@ import random
 import webbrowser
 import os
 import urllib.parse
+import sys
+import ctypes
 
 
 
@@ -400,8 +402,7 @@ class App(Frame):
             messagebox.showerror("خطا", "لطفا فیلد سریال چک را با عدد پر کنید")
             self.serialchek.focus()
         elif self.talachek.get() == 2 and self.mablaghchek.get() == '':
-            messagebox.showerror("خطا", "لطفا فیلد مبلغ چک را پر کنید")
-            self.mablaghchek.focus()
+            messagebox.showerror('', '')
         else:
             try:
                 self.sabtaghsatt()
@@ -570,7 +571,7 @@ class App(Frame):
             self.calendar_window.destroy()
 
         except ValueError:
-            print("تاریخ وارد شده معتبر نیست.")
+            messagebox.showerror('خطا', 'تازسخ وارد شده معتبر نیست')
 
     def update_timee(self):
         current_time = time.strftime("%H:%M:%S")
@@ -919,16 +920,14 @@ class App(Frame):
         self.frmmenuprint.place(x=0, y=0)
 
         result = self.insertvaluecombomodel()
-        # افزودن کامبوباکس
-        self.listmodel = []
 
-        self.listmodel.append(result)
 
         self.combomodel = ttk.Combobox(self.frmmenuprint, state='readonly', justify='center')
         self.combomodel.place(x=1000, y=20)
+
         try:
-            self.combomodel['values'] = self.listmodel
-            self.combomodel.set(self.listmodel[0])
+            self.combomodel['values'] = result
+            self.combomodel.set(result[0])
         except Exception as e:
             print(e)
 
@@ -939,12 +938,40 @@ class App(Frame):
 
     def print_dialog(self):
         try:
-            # مسیر فایل HTML
-            html_file_path = os.path.join(os.getcwd(), 'html/index.html')
+            # بررسی اینکه آیا برنامه تبدیل شده است یا خیر
+            if getattr(sys, 'frozen', False):  # اگر برنامه تبدیل شده است
+                base_path = sys._MEIPASS  # مسیر موقت برای فایل‌های همراه exe
+            else:  # در حالت عادی
+                base_path = os.path.dirname(os.path.abspath(__file__))  # مسیر فعلی برنامه
+
+            # مسیر پوشه نصب که شامل DLL است
+            install_dir = os.path.dirname(os.path.abspath(__file__))  # همان مسیر base_path است در حالت عادی
+
+            # اضافه کردن پوشه نصب به PATH
+            os.environ['PATH'] += os.pathsep + install_dir
+
+            # مسیر دقیق فایل DLL
+            dll_path = os.path.join(install_dir, 'python310.dll')
+
+            # بارگذاری DLL
+            try:
+                ctypes.CDLL(dll_path)
+                print("DLL با موفقیت بارگذاری شد")
+            except OSError as e:
+                print(f"خطا در بارگذاری DLL: {e}")
+
+            # تنظیم مسیر دقیق فایل HTML
+            html_file_path = os.path.join(base_path, 'html', 'index.html')
+
+            # بررسی اینکه فایل HTML وجود دارد
+            if not os.path.exists(html_file_path):
+                raise FileNotFoundError(f"فایل {html_file_path} پیدا نشد.")
+
             # خواندن محتوای HTML از فایل
             with open(html_file_path, 'r', encoding='utf-8') as html_file:
                 html_content = html_file.read()
 
+            # انجام پردازش‌ها بر روی داده‌ها
             user = Repository()
             result = user.alldevice("device", self.Phone.get(), self.combomodel.get())
             result1 = user.Existaghsatcode('aghsat', result[0][1])
@@ -962,28 +989,37 @@ class App(Frame):
                         """
             html_content = html_content.replace("<!-- داده‌ها اینجا داینامیک اضافه می‌شوند -->", table_rows)
 
-            # جایگزینی مقدار متغیر در HTML
-
+            # جایگزینی مقادیر داینامیک در HTML
             html_content = html_content.replace("{{model}}", result[0][6])
             html_content = html_content.replace("{{serial}}", result[0][4])
             html_content = html_content.replace("{{username}}", result[0][2])
             html_content = html_content.replace("{{phone}}", result[0][3])
             html_content = html_content.replace("{{kol}}", result[0][5])
-            # تبدیل محتوای HTML به فرمت URL-safe برای استفاده در مرورگر
+
+            # تبدیل محتوای HTML به فرمت URL-safe
             encoded_html = urllib.parse.quote(html_content)
 
+            # مشخص کردن مسیر مرورگر Edge
+            edge_path = r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"
 
-            # باز کردن محتوای HTML در مرورگر پیش‌فرض
-            webbrowser.open(f"data:text/html;charset=utf-8,{encoded_html}")
+            # بررسی اینکه مرورگر Edge موجود است
+            if os.path.exists(edge_path):
+                webbrowser.register('edge', None, webbrowser.BackgroundBrowser(edge_path))
+                webbrowser.get('edge').open(f"data:text/html;charset=utf-8,{encoded_html}")
+            else:
+                messagebox.showerror("خطا" ,"مرورگر Microsoft Edge پیدا نشد.")
 
         except Exception as e:
             print(f"Error: {e}")
 
+
     def insertvaluecombomodel(self):
         user = Repository()
         result = user.Exist('device', self.Phone.get())
+        listt = []
         for item in result:
-            return item[6]
+            listt.append(item[6])
+        return listt
 
 
     # -------------------------------------------- Register User ---------------------------------------
@@ -1312,13 +1348,15 @@ class App(Frame):
         event.widget.config(bg=color)
 
     def Amar(self, e):
-        self.frmamar = Frame(self.screendr, width=1300, height=800, background="black")
+        self.frmamar = Frame(self.screendr, width=1300, height=800)
         result = self.CountsAmar()
+
+        self.Phonedr = StringVar()
+        lblphonedr = Entry(self.frmamar, textvariable=self.Phonedr)
+        lblphonedr.place_forget()
 
         # برچسب‌ها با استایل‌های جدید
         label_style = {
-            "background": "#2C3E50",
-            "foreground": "#ECF0F1",
             "font": ("Arial", 12),
             "padx": 10,
             "pady": 5
@@ -1330,7 +1368,7 @@ class App(Frame):
         self.update_timeee()
 
         self.amar_user = Label(self.frmamar)
-        self.amar_user.config(text=f"تعداد کاربران : {result[0][0][0]}", fg="white", background="black", font="Arial 15 bold")
+        self.amar_user.config(text=f"تعداد کاربران : {result[0][0][0]}",**label_style)
         self.amar_user.configure(**label_style)
         self.amar_user.place(x=800, y=400)
 
@@ -1347,7 +1385,7 @@ class App(Frame):
         self.total_aghsatprnashode.place(x=800, y=580)
 
         row = ['id', 'name', 'family', 'phone', 'date', 'time']
-        self.tblamar = ttk.Treeview(self.frmamar, columns=row, show='headings', height=35)
+        self.tblamar = ttk.Treeview(self.frmamar, columns=row, show='headings', height=40)
 
         self.tblamar.heading('name', text='نام')
         self.tblamar.heading('family', text='فامیلی')
@@ -1362,11 +1400,300 @@ class App(Frame):
         self.tblamar.column('time', anchor='center', width=150)
         self.tblamar.column('id', stretch=tk.NO, width=0)
 
+        self.tblamar.bind("<Button-1>", self.setvaluephone)
+
         self.tblamar.place(x=10, y=10)
 
         self.inserttableamaruser()
 
         self.frmamar.place(x=0, y=0)
+    def setvaluephone(self, e):
+        selection = self.tblamar.selection()
+        if selection != ():
+            self.Amar('')
+            self.Phonedr.set(self.tblamar.item(selection)["values"][3])
+            self.newtk()
+
+    def newtk(self):
+        self.info = Tk()
+        self.info.geometry("%dx%d+%d+%d" % (1500, 800, 200, 100))
+        self.reload_values_newtk()
+        self.info.mainloop()
+
+    def reload_values_newtk(self):
+        """اطلاعات اقساط را نمایش می‌دهد"""
+
+        self.frminfoaghsatdr = Frame(self.info, width=1500, height=800)
+        self.frminfoaghsatdr.place(x=0, y=0)
+        user = Repository()
+        result = user.Exist("users", int(self.Phonedr.get()))
+
+        # کادر متنی برای نمایش اطلاعات
+        self.textbox1 = tk.Text(self.frminfoaghsatdr, width=45, height=38, state="disabled",
+                                bg="#EAEAEA", fg="#333", font=("Arial", 12), bd=2, relief="solid")
+        self.textbox1.place(x=10, y=50)
+        self.test1()
+
+        for item in result:
+            self.textbox1.config(state=NORMAL)
+
+            self.textbox1.insert(tk.END, f"\nتاریخ ثبت نام : {item[4]} - ساعت ثبت نام {item[5]}")
+            self.textbox1.config(state=DISABLED)
+
+        # ورودی‌های مختلف برای اطلاعات اقساط
+        self.id = StringVar()
+        self.txtid = Entry(self.frminfoaghsatdr, textvariable=self.id)
+        self.txtid.place_forget()
+
+        self.code = StringVar()
+        self.txtcode = Entry(self.frminfoaghsatdr, textvariable=self.code)
+        self.txtcode.place_forget()
+
+        self.paid = StringVar()
+        self.txtpaid = Entry(self.frminfoaghsatdr, textvariable=self.paid)
+        self.txtpaid.place_forget()
+
+        # دکمه‌ها با استایل مدرن
+        self.btntasfie = Button(self.frminfoaghsatdr, text="پرداخت", background="#28a745",
+                                command=self.oneclickpymuont1,
+                                font=("Arial", 12, "bold"), relief="flat", fg="white", width=10)
+        self.btntasfie.place_forget()
+
+        self.btndelete = Button(self.frminfoaghsatdr, text="حذف", background="#dc3545", command=self.oneclickdelete1,
+                                font=("Arial", 12, "bold"), relief="flat", fg="white", width=10)
+        self.btndelete.place_forget()
+
+        self.btncancel = Button(self.frminfoaghsatdr, text="کنسل", command=self.onclickcancel1,
+                                font=("Arial", 12, "bold"), relief="flat", fg="black", width=10)
+        self.btncancel.place_forget()
+
+        self.btnnotasfie = Button(self.frminfoaghsatdr, text="لغو پرداخت", background="#dc3545",
+                                  command=self.oneclickcpymuont1,
+                                  font=("Arial", 12, "bold"), relief="flat", fg="white", width=10)
+        self.btnnotasfie.place_forget()
+
+        s = ['row', 'code', 'name', 'phone', 'price', 'karmozd', 'kamel', 'time', 'status', 'num']
+
+        # جدول اقساط پرنشده
+        self.tableprnashode1 = ttk.Treeview(self.frminfoaghsatdr, columns=s, show='headings', height=15)
+
+        self.tableprnashode1.column('row', width=0, stretch=tk.NO)
+        self.tableprnashode1.column('code', width=100, anchor='center')
+        self.tableprnashode1.column('name', width=150, anchor='center')
+        self.tableprnashode1.column('phone', width=150, anchor='center')
+        self.tableprnashode1.column('price', width=200, anchor='center')
+        self.tableprnashode1.column('time', width=100, anchor='center')
+        self.tableprnashode1.column('status', width=100, anchor='center')
+        self.tableprnashode1.column('karmozd', width=0, stretch=tk.NO)
+        self.tableprnashode1.column('kamel', width=0, stretch=tk.NO)
+        self.tableprnashode1.column('num', width=0, stretch=tk.NO)
+
+        # عنوان ستون‌ها برای جدول اقساط
+        self.tableprnashode1.heading('code', text='کد', anchor='center')
+        self.tableprnashode1.heading('name', text='نام', anchor='center')
+        self.tableprnashode1.heading('phone', text='شماره', anchor='center')
+        self.tableprnashode1.heading('price', text='مبلغ قسط', anchor='center')
+        self.tableprnashode1.heading('time', text='تاریخ', anchor='center')
+        self.tableprnashode1.heading('status', text='وضعیت', anchor='center')
+
+        self.tableprnashode1.bind('<Button-1>', self.selectprnashode1)
+
+        self.tableprnashode1.place(x=480, y=49)
+        self.cleartabaleprnashode1()
+        self.inserttableprnashode1()
+
+        # جدول اقساط پرداخت شده
+        self.tableprshode1 = ttk.Treeview(self.frminfoaghsatdr, columns=s, show='headings', height=15)
+
+        self.tableprshode1.column('row', width=0, stretch=tk.NO)
+        self.tableprshode1.column('code', width=100, anchor='center')
+        self.tableprshode1.column('name', width=150, anchor='center')
+        self.tableprshode1.column('phone', width=150, anchor='center')
+        self.tableprshode1.column('price', width=200, anchor='center')
+        self.tableprshode1.column('time', width=100, anchor='center')
+        self.tableprshode1.column('status', width=100, anchor='center')
+        self.tableprshode1.column('karmozd', width=0, stretch=tk.NO)
+        self.tableprshode1.column('kamel', width=0, stretch=tk.NO)
+        self.tableprshode1.column('num', width=0, stretch=tk.NO)
+
+        # عنوان ستون‌ها برای جدول اقساط پرداخت شده
+        self.tableprshode1.heading('code', text='کد', anchor='center')
+        self.tableprshode1.heading('name', text='نام', anchor='center')
+        self.tableprshode1.heading('phone', text='شماره', anchor='center')
+        self.tableprshode1.heading('price', text='مبلغ قسط', anchor='center')
+        self.tableprshode1.heading('time', text='تاریخ', anchor='center')
+        self.tableprshode1.heading('status', text='وضعیت', anchor='center')
+        self.tableprshode1.bind('<Button-1>', self.selectprshode1)
+
+        self.cleartabaleprshode1()
+        self.inserttableprshode1()
+
+        self.tableprshode1.place(x=480, y=411)
+
+    def oneclickcpymuont1(self):
+        result = messagebox.askyesno('هشدار', 'ایا میخاهید این پرداخت را کنسل کنید؟')
+        if result:
+            user = Repository()
+            obj = self.paid.get(), self.id.get()
+            user.Update("aghsat", obj)
+            self.reload_values_newtk()
+
+    def onclickcancel1(self):
+        self.btntasfie.place_forget()
+        self.btncancel.place_forget()
+        self.btndelete.place_forget()
+        self.cleartabaleprnashode1()
+        self.inserttableprnashode1()
+        self.cleartabaleprshode1()
+        self.inserttableprshode1()
+        self.btnnotasfie.place_forget()
+        self.id.set('')
+        self.paid.set('')
+
+    def oneclickdelete1(self):
+        user = Repository()
+        message = messagebox.askyesno('هشدار', 'مطمعن به حذف این کد هستید؟ (همه ثبت هایی که با این کد هستند حذف خواهند شد)')
+        if message:
+            result = user.Delete("aghsat", self.code.get())
+            result1 = user.Delete("device", self.code.get())
+            result3 = user.Delete("type", self.code.get())
+            if result and result1 and result3:
+                messagebox.showinfo('ok', 'ok')
+                self.reload_values_newtk()
+            else:
+                messagebox.showinfo('cancel', 'cancel')
+
+    def oneclickpymuont1(self):
+        result = messagebox.askyesno('هشدار', 'ایا میخاهید این قسط پرداخت شود؟')
+        if result:
+            user = Repository()
+            obj = self.paid.get(), self.id.get()
+            user.Update("aghsat", obj)
+            self.reload_values_newtk()
+
+    def selectprshode1(self, e):
+        selection = self.tableprshode1.selection()
+        if selection != ():
+            self.id.set(self.tableprshode1.item(selection)["values"][0])
+            self.paid.set("not paid")
+            self.btnnotasfie.place(x=850, y=750)
+            self.btncancel.place(x=750, y=750)
+
+    def inserttableprshode1(self):
+        user = Repository()
+        result = user.Exist("aghsat", int(self.Phonedr.get()))
+        for item in result:
+            if item[8] == "paid":
+                self.tableprshode1.insert('', END, values=item)
+
+    def cleartabaleprshode1(self):
+        for item in self.tableprshode1.get_children():
+            sel = (str(item),)
+            self.tableprshode1.delete(*sel)
+
+    def selectprnashode1(self, e):
+        selection = self.tableprnashode1.selection()
+        if selection != ():
+            self.id.set(self.tableprnashode1.item(selection)["values"][0])
+            self.code.set(self.tableprnashode1.item(selection)["values"][1])
+            self.paid.set("paid")
+            self.btntasfie.place(x=850, y=375)
+            self.btndelete.place(x=950, y=375)
+            self.btncancel.place(x=750, y=375)
+
+    def cleartabaleprnashode1(self):
+        for item in self.tableprnashode1.get_children():
+            sel = (str(item),)
+            self.tableprnashode1.delete(*sel)
+
+    def inserttableprnashode1(self):
+        user = Repository()
+        result = user.Exist("aghsat", int(self.Phonedr.get()))
+        for item in result:
+            if item[8] == "not paid":
+                self.tableprnashode1.insert('', END, values=item)
+
+    def test1(self):
+        phone = int(self.Phonedr.get())
+        unit = set()
+
+        a = Repository()
+        result = a.Exist("device", phone)
+        result1 = a.Exist("aghsat", phone)
+
+        # شمارش تعداد تکرار هر کد در result1
+        code_count = {}
+        prshode = {}
+        prnashode = {}
+
+        if result and result1:
+            self.textbox1.config(state=NORMAL)
+
+            # اضافه کردن مقادیر به set برای جلوگیری از تکرار
+            for item1 in result1:
+                key = item1[1]
+                unit.add((key, item1[5], item1[6], item1[9]))  # فقط مقادیر مورد نظر را اضافه کنید
+                # شمارش تعداد تکرار کد دستگاه
+                if key in code_count:
+                    code_count[key] += 1
+                else:
+                    code_count[key] = 1
+                if item1[8] == "not paid":
+                    if key in prnashode:
+                        prnashode[key] += 1
+                    else:
+                        prnashode[key] = 1
+                if item1[8] == "paid":
+                    if key in prshode:
+                        prshode[key] += 1
+                    else:
+                        prshode[key] = 1
+
+            unit_list = list(unit)
+
+            grouped_data = {}
+
+            for device in result:
+                device_code = device[1]  # کد دستگاه در ستون 1
+                if device_code not in grouped_data:
+                    grouped_data[device_code] = {
+                        'devices': [],
+                        'units': []
+                    }
+                grouped_data[device_code]['devices'].append(device)
+
+            # افزودن اطلاعات اقساط مربوط به هر کد دستگاه
+            for item2 in unit_list:
+                code = item2[0]  # کد دستگاه در unit
+                if code in grouped_data:
+                    grouped_data[code]['units'].append(item2)
+
+            for code, data in grouped_data.items():
+                self.textbox1.insert(tk.END, f"کد موبایل: {code}\n")
+
+                # ابتدا اطلاعات دستگاه‌ها را نمایش می‌دهیم (سریال و مدل)
+
+                for device in data['devices']:
+                    self.textbox1.insert(tk.END, f"سریال: {device[4]}\n")
+                    self.textbox1.insert(tk.END, f"مدل: {device[6]}\n")
+
+                # سپس اطلاعات اقساط را نمایش می‌دهیم
+                for item2 in data['units']:
+                    self.textbox1.insert(tk.END, f"مبلغ کامل: {item2[2]}\n")
+                    self.textbox1.insert(tk.END, f"کل کارمزد: {int(item2[1].replace(',', '')) * int(item2[3]):,}\n")
+                    self.textbox1.insert(tk.END, f"کارمزد هر ماه: {item2[1]}\n")
+
+                code_count_1 = code_count.get(code, 0)
+                prshode_count = prshode.get(code, 0)
+                prnashode_count = prnashode.get(code, 0)
+
+                self.textbox1.insert(tk.END, f"تعداد اقساط: {code_count_1}\n")
+                self.textbox1.insert(tk.END, f"اقساط پرداخت شده: {prshode_count}\n")
+                self.textbox1.insert(tk.END, f"اقساط پرداخت نشده: {prnashode_count}\n")
+
+                self.textbox1.insert(tk.END, f"\n-----------------------------------------------\n")
+
+            self.textbox1.config(state=DISABLED)
 
     # -------------------------------------------- Clock ---------------------------------------
 
@@ -1478,13 +1805,11 @@ class App(Frame):
 
     def dr_prshode(self, e):
 
-        self.frmdr_prshode = Frame(self.screendr, width=1300, height=800, bg="#2C3E50")
+        self.frmdr_prshode = Frame(self.screendr, width=1300, height=800)
         result = self.countpr_shode()
 
         # برچسب‌ها با استایل‌های جدید
         label_style = {
-            "background": "#2C3E50",
-            "foreground": "#ECF0F1",
             "font": ("Arial", 12),
             "padx": 10,
             "pady": 5
@@ -1678,15 +2003,13 @@ class App(Frame):
 
     def dr_prnashode(self, e):
         # فرم اصلی برای پرداخت نشده ها
-        self.frmprnashode = Frame(self.screendr, width=1300, height=800, bg="#2C3E50")
+        self.frmprnashode = Frame(self.screendr, width=1300, height=800)
 
         # گرفتن نتایج از تابع countpr_nashode()
         result = self.countpr_nashode()
 
         # برچسب‌ها با استایل‌های جدید
         label_style = {
-            "background": "#2C3E50",
-            "foreground": "#ECF0F1",
             "font": ("Arial", 12),
             "padx": 10,
             "pady": 5
@@ -1713,11 +2036,11 @@ class App(Frame):
         lblcountmonth.place(x=780, y=500)
 
         # کارمزد این ماه
-        lblkarmozdmonth = Label(self.frmprnashode, text=f"کارمزد: {result[4]:,}", fg="white", bg="black", **label_style)
+        lblkarmozdmonth = Label(self.frmprnashode, text=f"کارمزد: {result[4]:,}", **label_style)
         lblkarmozdmonth.place(x=620, y=540)
 
         # مبلغ قسط این ماه
-        lblkolmonth = Label(self.frmprnashode, text=f"مبلغ قسط: {result[3]:,}", fg="white", bg="black", **label_style)
+        lblkolmonth = Label(self.frmprnashode, text=f"مبلغ قسط: {result[3]:,}", **label_style)
         lblkolmonth.place(x=950, y=540)
 
         # تعداد پرداخت نشده‌های کل
@@ -1725,11 +2048,11 @@ class App(Frame):
         lblcountall.place(x=780, y=580)
 
         # کارمزد کل
-        lblkarmozdall = Label(self.frmprnashode, text=f"کارمزد: {result[7]:,}", fg="white", bg="black", **label_style)
+        lblkarmozdall = Label(self.frmprnashode, text=f"کارمزد: {result[7]:,}", **label_style)
         lblkarmozdall.place(x=620, y=620)
 
         # مبلغ قسط کل
-        lblkolall = Label(self.frmprnashode, text=f"مبلغ قسط: {result[6]:,}", fg="white", bg="black", **label_style)
+        lblkolall = Label(self.frmprnashode, text=f"مبلغ قسط: {result[6]:,}", **label_style)
         lblkolall.place(x=950, y=620)
 
         # نمایش فرم
@@ -1879,40 +2202,38 @@ class App(Frame):
         return karmozdday, ghestday, countday, karmozdmonth, ghestmount, countmount, karmozdall, ghestall, allcount
 
     def search_date(self, e):
-        self.frmsearchdate = Frame(self.screendr, width=1300, height=800, bg="#2C3E50")
+        self.frmsearchdate = Frame(self.screendr, width=1300, height=800)
 
         year = jalali_date_now.year
 
         # استایل برای ورودی سال
         self.txtyear = StringVar()
-        self.year = Entry(self.frmsearchdate, textvariable=self.txtyear, justify='center', font=("Arial", 14),
-                          bg="#34495E", fg="white", bd=2, relief="solid", highlightthickness=2,
+        self.year = Entry(self.frmsearchdate, textvariable=self.txtyear, justify='center', font=("Arial", 14), bd=2, relief="solid", highlightthickness=2,
                           highlightcolor="#16A085")
         self.txtyear.set(f"{jalali_date_now.year}")
         self.year.bind("<Button-1>", self.clearyear)
-        self.year.place(x=500, y=10)
+        self.year.place(x=450, y=10)
 
         # استایل برای ورودی ماه
         self.txtmonth = StringVar()
-        self.month = Entry(self.frmsearchdate, textvariable=self.txtmonth, justify='center', font=("Arial", 14),
-                           bg="#34495E", fg="white", bd=2, relief="solid", highlightthickness=2,
+        self.month = Entry(self.frmsearchdate, textvariable=self.txtmonth, justify='center', font=("Arial", 14), bd=2, relief="solid", highlightthickness=2,
                            highlightcolor="#16A085")
         self.txtmonth.set("Month")
         self.month.bind("<Button-1>", self.clearmonth)
-        self.month.place(x=700, y=10)
+        self.month.place(x=650, y=10)
 
         # رادیو باتن‌ها (پرداخت شده، پرداخت نشده، همه)
         self.radiovalues = IntVar()
 
         # تغییر استایل رادیو باتن‌ها با پر شدن رنگ مشکی در حالت پیش‌فرض
         radiopaid = Radiobutton(self.frmsearchdate, text="پرداخت شده", value=1, bg="black",
-                                font=("Arial", 12, "bold"), fg="red", variable=self.radiovalues,
+                                font=("Arial", 12, "bold"), fg="white", variable=self.radiovalues,
                                 indicatoron=False)  # indicatoron=False باعث می‌شود که رادیو باتن پر شود.
         radionotpaid = Radiobutton(self.frmsearchdate, text="پرداخت نشده", value=2, bg="black",
-                                   font=("Arial", 12, "bold"), fg="red", variable=self.radiovalues,
+                                   font=("Arial", 12, "bold"), fg="white", variable=self.radiovalues,
                                    indicatoron=False)
         radioall = Radiobutton(self.frmsearchdate, text="همه", value=3, bg="black",
-                               font=("Arial", 12, "bold"), fg="red", variable=self.radiovalues,
+                               font=("Arial", 12, "bold"), fg="white", variable=self.radiovalues,
                                indicatoron=False)
 
         # قرار دادن رادیو باتن‌ها در مکان‌های مشخص شده
@@ -1947,23 +2268,23 @@ class App(Frame):
         self.tblsearchdate.place(x=370, y=150)
 
         # برچسب‌های نتیجه جستجو
-        self.lblcountsearch = Label(self.frmsearchdate, fg="white", bg="#34495E", font=("Helvetica", 14, "bold"),
+        self.lblcountsearch = Label(self.frmsearchdate, font=("Helvetica", 14, "bold"),
                                     pady=5, padx=10, relief="solid", bd=2)
         self.lblcountsearch.place_forget()
 
-        self.lblkarmozdsearchshode = Label(self.frmsearchdate, fg="white", bg="#34495E", font=("Helvetica", 14, "bold"),
+        self.lblkarmozdsearchshode = Label(self.frmsearchdate, font=("Helvetica", 14, "bold"),
                                            pady=5, padx=10, relief="solid", bd=2)
         self.lblkarmozdsearchshode.place_forget()
 
-        self.lblallpricesearchshode = Label(self.frmsearchdate, fg="white", bg="#34495E",
+        self.lblallpricesearchshode = Label(self.frmsearchdate,
                                             font=("Helvetica", 14, "bold"), pady=5, padx=10, relief="solid", bd=2)
         self.lblallpricesearchshode.place_forget()
 
-        self.lblkarmozdsearchnashode = Label(self.frmsearchdate, fg="white", bg="#34495E",
+        self.lblkarmozdsearchnashode = Label(self.frmsearchdate,
                                              font=("Helvetica", 14, "bold"), pady=5, padx=10, relief="solid", bd=2)
         self.lblkarmozdsearchnashode.place_forget()
 
-        self.lblallpricesearchnashode = Label(self.frmsearchdate, fg="white", bg="#34495E",
+        self.lblallpricesearchnashode = Label(self.frmsearchdate,
                                               font=("Helvetica", 14, "bold"), pady=5, padx=10, relief="solid", bd=2)
         self.lblallpricesearchnashode.place_forget()
 
@@ -2125,10 +2446,10 @@ class App(Frame):
 
     def search_user(self, e):
         # فرم جستجو
-        self.frmsearchuser = Frame(self.screendr, bg="#2C3E50", width=1300, height=800)
+        self.frmsearchuser = Frame(self.screendr, width=1300, height=800)
 
         # استایل برای کادر جستجو
-        self.txtsearchuser = Entry(self.frmsearchuser, justify="center", font=("Arial", 14), bg="#34495E", fg="white",
+        self.txtsearchuser = Entry(self.frmsearchuser, justify="center", font=("Arial", 14),
                                    bd=2, relief="solid", highlightthickness=2, highlightcolor="#16A085")
         self.txtsearchuser.place(x=1050, y=10)
 
@@ -2140,8 +2461,6 @@ class App(Frame):
 
         # برچسب‌ها با استایل‌های جدید
         label_style = {
-            "background": "#2C3E50",
-            "foreground": "#ECF0F1",
             "font": ("Arial", 12),
             "padx": 10,
             "pady": 5
@@ -2185,12 +2504,12 @@ class App(Frame):
 
         # اضافه کردن افکت hover برای فیلد جستجو
         self.txtsearchuser.bind("<Enter>", lambda e: e.widget.config(bg="#16A085"))
-        self.txtsearchuser.bind("<Leave>", lambda e: e.widget.config(bg="#34495E"))
+        self.txtsearchuser.bind("<Leave>", lambda e: e.widget.config(bg="white"))
 
         # اضافه کردن سایه به برچسب‌ها برای تاثیر عمق
         for label in [self.lblname, self.lblphone, self.lblprshode, self.lblkarmozdprshode, self.lblallprshode,
                       self.lblprnashode, self.lblkarmozdprnashode, self.lblallprnashode]:
-            label.config(highlightthickness=1, highlightbackground="#16A085")
+            label.config(highlightthickness=1, highlightbackground="black")
 
         lblaghsat = Label(self.frmsearchuser, text='اقساط')
         lblaghsat.place(x=200, y=10)

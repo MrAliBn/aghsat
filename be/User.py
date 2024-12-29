@@ -13,7 +13,7 @@ connection = mysql.connector.connect(
 cursor = connection.cursor()
 cursor.execute("SELECT DATABASE();")
 result = cursor.fetchone()
-print(f"Connected to database: {result}")
+
 
 
 create_users_table = """
