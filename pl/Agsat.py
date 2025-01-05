@@ -197,7 +197,7 @@ class App(Frame):
 
         # استایل برای منو و برچسب‌ها
         label_style = {
-            "font": ("Arial", 16, "bold"),
+            "font": ("Arial", 14),
             "fg": "#ecf0f1",
             "bg": "#34495e",
             "width": 25,
@@ -1392,7 +1392,7 @@ class App(Frame):
         # فرم منو
         # استایل برای منو و برچسب‌ها
         label_style = {
-            "font": ("Arial", 16, "bold"),
+            "font": ("Arial", 14),
             "fg": "#ecf0f1",
             "bg": "#34495e",
             "width": 25,
