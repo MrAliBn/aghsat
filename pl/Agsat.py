@@ -4,6 +4,8 @@ import tkinter as tk
 import time
 import jdatetime
 import math
+
+
 from dal.repository import Repository
 from time import strftime
 from persiantools.jdatetime import JalaliDate
@@ -25,8 +27,8 @@ class App(Frame):
     def __init__(self, screen):
         super().__init__(screen)
         self.screen = screen
-        self.Register()
         self.Menu()
+        self.Register()
         style = ttk.Style()
         style.configure("Custom.Treeview", background="#444444", foreground="#FFFFFF", fieldbackground="#2e2e2e",
                         font=("Arial", 10))
@@ -70,6 +72,161 @@ class App(Frame):
         if result == 'yes':
             self.screen.destroy()
 
+        # -------------------------------------------- Login User ---------------------------------------
+
+    def Login(self):
+        window_width = self.screen.winfo_width()
+        window_height = self.screen.winfo_height()
+
+        frame_width = int(window_width * 1.0)
+        frame_height = int(window_height * 1.0)
+        # فریم اصلی ورود
+        self.frmlogin = Frame(self.screen, width=frame_width, height=frame_height, bg="#1B1F38")
+        self.frmlogin.place(x=0, y=0)
+
+        # فریم برجسته برای ورود
+        self.frmloginbd = Frame(self.frmlogin, width=400, height=400, bg="#FFFFFF", relief="raised", bd=10)
+        self.frmloginbd.place(relx=0.5, rely=0.5, anchor="center")
+
+        # عنوان فرم
+        self.mtnregister = Label(
+            self.frmloginbd,
+            text="ورود کاربر",
+            fg="#1B1F38",
+            font=("Arial", 20, "bold"),
+            bg="#FFFFFF",
+        )
+        self.mtnregister.place(relx=0.5, rely=0.15, anchor="center")
+
+        # لیبل شماره تلفن
+        self.lblphonee = Label(
+            self.frmloginbd,
+            text="شماره تلفن:",
+            font=("Arial", 12),
+            bg="#FFFFFF",
+            fg="#6B7280",
+        )
+        self.lblphonee.place(relx=0.5, rely=0.35, anchor="center")
+
+        # فیلد ورودی شماره تلفن
+        self.txtlogin = Entry(
+            self.frmloginbd,
+            bg="#F3F4F6",
+            fg="#000000",
+            bd=0,
+            justify="center",
+            font=("Arial", 14),
+            textvariable=self.Phone,
+        )
+        self.txtlogin.bind("<Button-1>", self.clearphone)
+        self.txtlogin.place(relx=0.5, rely=0.45, anchor="center", width=250, height=30)
+
+        # خط زیر فیلد شماره تلفن
+        Frame(self.frmloginbd, bg="#1B75BB", width=260, height=2).place(relx=0.5, rely=0.51, anchor="center")
+
+        # لینک ثبت‌نام
+        self.lblregister = Label(
+            self.frmloginbd,
+            text="ثبت ‌نام کاربر",
+            fg="#1B75BB",
+            font=("Arial", 15, "bold"),
+            bg="#FFFFFF",
+            cursor="hand2",
+        )
+        self.lblregister.bind("<Button-1>", self.oneclickRegister)
+        self.lblregister.place(relx=0.5, rely=0.65, anchor="center")
+
+        # دکمه ورود
+        self.btnlogin = Button(
+            self.frmloginbd,
+            text="ورود",
+            command=self.oneclicklogin,
+            bg="#4CAF50",
+            fg="white",
+            font=("Arial", 12, "bold"),
+            bd=0,
+            activebackground="#45A049",
+            activeforeground="white",
+        )
+        self.btnlogin.place(relx=0.5, rely=0.8, anchor="center", width=200, height=40)
+
+
+    def cleanphone(self):
+        self.Phone.set('')
+
+    def oneclickLogin(self, e):
+        self.Login()
+        self.cleanphone()
+
+    def oneclicklogin(self):
+        user = Repository()
+        if len(self.Phone.get()) < 11:
+            messagebox.showerror("خطا", "شماره اشتباه است")
+            self.cleanphone()
+        else:
+            query = """ SELECT * FROM users where phone = %s"""
+            params = (self.Phone.get(),)
+            result = user.execute_query(query, params, fetch=True)
+            if not result:
+                messagebox.showerror("خطا", "کاربر پیدا نشد")
+            else:
+                self.ScreenUser()
+
+    def ScreenUser(self):
+        window_width = self.frmlogin.winfo_width()
+        window_height = self.frmlogin.winfo_height()
+
+        frame_width = int(window_width * 1.0)
+        frame_height = int(window_height * 1.0)
+
+        self.frmscreenuser = Frame(self.frmlogin, width=frame_width, height=frame_height, bg="white")
+
+        self.infoaghsat()
+
+
+        frame_width_menu = int(window_width * 0.2)
+        frame_height_menu = int(window_height * 1.0)
+
+        self.frmmenu = Frame(self.frmscreenuser, width=frame_width_menu, height=frame_height_menu, bg="#2c3e50")
+        self.menu_login_user()
+        self.frmmenu.place(x=int(window_width * 0.8), y=0)
+
+        self.frmscreenuser.place(x=0, y=0)
+
+    def menu_login_user(self):
+
+        # استایل برای منو و برچسب‌ها
+        label_style = {
+            "font": ("Arial", 16, "bold"),
+            "fg": "#ecf0f1",
+            "bg": "#34495e",
+            "width": 25,
+            "height": 2,
+            "bd": 0,
+            "anchor": "w",
+            "padx": 20,
+            "pady": 10
+        }
+
+        self.lblsabtaghsat = Label(self.frmmenu, text=" اطلاعات اقساط ")
+        self.lblsabtaghsat.configure(**label_style)
+        self.lblsabtaghsat.bind("<Button-1>", self.clickinfoaghsat)
+        self.lblsabtaghsat.place(x=0, y=50)
+
+        self.lblinfoaghsat = Label(self.frmmenu, text="ثبت اقساط")
+        self.lblinfoaghsat.configure(**label_style)
+        self.lblinfoaghsat.bind("<Button-1>", self.clicksabtaghsat)
+        self.lblinfoaghsat.place(x=0, y=120)
+
+        self.lblprint = Label(self.frmmenu, text="پرینت")
+        self.lblprint.configure(**label_style)
+        self.lblprint.bind("<Button-1>", self.clickprint)
+        self.lblprint.place(x=0, y=190)
+
+        for label in [self.lblsabtaghsat, self.lblinfoaghsat, self.lblprint]:
+            label.bind("<Enter>", lambda e: self.change_color_on_hover(e, "#16a085"))
+            label.bind("<Leave>", lambda e: self.change_color_on_hover(e, "#34495e"))
+
     # -------------------------------------------- Sabt Aghsat ---------------------------------------
 
     def aghsat(self):
@@ -79,22 +236,36 @@ class App(Frame):
         return num
 
     def sabtaghsat(self):
-        self.frminfoaghsat.place_forget()
+        window_width = self.frmscreenuser.winfo_width()
+        window_height = self.frmscreenuser.winfo_height()
+
+        frame_width = int(window_width * 0.8)
+        frame_height = int(window_height * 1.0)
         user = Repository()
-        result = user.Exist("users", self.Phone.get())
+        query = """SELECT * FROM users where phone = %s"""
+        params = (self.Phone.get(),)
+        result = user.execute_query(query, params, fetch=True)
         for item in result:
             # تنظیم فریم اصلی
-            self.frmsabtaghsat = Frame(self.frmscreenuser, width=1300, height=800, bg="#F4F4F4")
+            self.frmsabtaghsat = Frame(self.frmscreenuser, width=frame_width, height=frame_height, bg="#F4F4F4")
+            self.frmsabtaghsatbd = Frame(self.frmsabtaghsat, width=frame_width, height=frame_height, relief="raised")
+            self.frmsabtaghsatbd.place(relx=0.5, rely=0.5, anchor="center")
             self.frmsabtaghsat.place(x=0, y=0)
 
             # عنوان فرم
-            self.mtnuser = Label(self.frmsabtaghsat, text="کاربر", fg="#333", font=("Arial", 24, "bold"), bg="#F4F4F4")
-            self.mtnuser.place(x=700, y=40)
+            self.mtnuser = Label(
+                self.frmsabtaghsatbd,
+                text="کاربر",
+                fg="#333",
+                font=("Arial", 24, "bold"),
+                bg="#F4F4F4"
+            )
+            self.mtnuser.place(relx=0.47, rely=0.14, anchor="center")
 
             # نام کاربری
             Name = StringVar()
             self.txtname = Entry(
-                self.frmsabtaghsat,
+                self.frmsabtaghsatbd,
                 bg="#FFFFFF",
                 fg="#333",
                 bd=2,
@@ -103,16 +274,13 @@ class App(Frame):
                 font=("Arial", 14),
                 state=DISABLED,
             )
-            self.txtname.place(x=480, y=90, width=200, height=30)
+            self.txtname.place(relx=0.35, rely=0.20, anchor="center", width=200, height=30)
             Name.set(f"{item[1]} {item[2]}")
-
-            self.lblname = Label(self.frmsabtaghsat, text="نام کاربری:", fg="#555", font=("Arial", 12), bg="#F4F4F4")
-            self.lblname.place(x=400, y=90)
 
             # شماره
             Phone = StringVar()
             self.txtPhone = Entry(
-                self.frmsabtaghsat,
+                self.frmsabtaghsatbd,
                 bg="#FFFFFF",
                 fg="#333",
                 bd=2,
@@ -122,105 +290,92 @@ class App(Frame):
                 state=DISABLED,
             )
             Phone.set(item[3])
-            self.txtPhone.place(x=830, y=90, width=200, height=30)
-
-            self.lblPhone = Label(self.frmsabtaghsat, text="شماره:", fg="#555", font=("Arial", 12), bg="#F4F4F4")
-            self.lblPhone.place(x=750, y=90)
+            self.txtPhone.place(relx=0.55, rely=0.187, width=200, height=30)
 
             # سریال
+            serial = StringVar()
             self.txtserial = Entry(
                 self.frmsabtaghsat,
                 bg="#FFFFFF",
-                fg="#333",
+                fg="gray",
                 bd=2,
                 justify="center",
-                font=("Arial", 14),
+                font=("Arial", 12),
+                textvariable=serial,
             )
-            self.txtserial.place(x=480, y=140, width=200, height=30)
-
-            self.lblserial = Label(self.frmsabtaghsat, text="سریال:", fg="#555", font=("Arial", 12), bg="#F4F4F4")
-            self.lblserial.place(x=400, y=140)
+            serial.set("سریال")
+            self.txtserial.place(relx=0.285, rely=0.238, width=200, height=30)
 
             # مدل
+            model = StringVar()
             self.txtmodel = Entry(
-                self.frmsabtaghsat,
+                self.frmsabtaghsatbd,
                 bg="#FFFFFF",
-                fg="#333",
+                fg="gray",
                 bd=2,
                 justify="center",
-                font=("Arial", 14),
+                font=("Arial", 12),
+                textvariable=model,
             )
-            self.txtmodel.place(x=830, y=140, width=200, height=30)
-
-            self.lblmodel = Label(self.frmsabtaghsat, text="مدل:", fg="#555", font=("Arial", 12), bg="#F4F4F4")
-            self.lblmodel.place(x=750, y=140)
+            model.set("مدل")
+            self.txtmodel.place(relx=0.55, rely=0.237, width=200, height=30)
 
             # عنوان اقساط
             self.mtnaghsat = Label(
-                self.frmsabtaghsat, text="اقساط", fg="#333", font=("Arial", 20, "bold"), bg="#F4F4F4"
+                self.frmsabtaghsatbd, text="اقساط", fg="#333", font=("Arial", 20, "bold"), bg="#F4F4F4"
             )
-            self.mtnaghsat.place(x=700, y=240)
+            self.mtnaghsat.place(relx=0.45, rely=0.3)
 
             # تاریخ اولین قسط
             self.txtstartgest = Entry(
-                self.frmsabtaghsat, bg="#FFFFFF", fg="#333", bd=2, justify="center", font=("Arial", 14)
+                self.frmsabtaghsatbd, bg="#FFFFFF", fg="#333", bd=2, justify="center", font=("Arial", 14)
             )
-            self.txtstartgest.place(x=480, y=290, width=200, height=30)
-
-            self.lblstartgest = Label(
-                self.frmsabtaghsat, text="تاریخ اولین قسط:", fg="#555", font=("Arial", 12), bg="#F4F4F4"
-            )
-            self.lblstartgest.place(x=350, y=290)
+            self.txtstartgest.place(relx=0.285, rely=0.358, width=200, height=30)
 
             # مبلغ اسمی
+            esmi = StringVar()
             self.txtmablaghesmi = Entry(
-                self.frmsabtaghsat,
+                self.frmsabtaghsatbd,
                 bg="#FFFFFF",
-                fg="#333",
+                fg="gray",
                 bd=2,
                 justify="center",
-                font=("Arial", 14),
+                font=("Arial", 12),
+                textvariable=esmi,
             )
+            esmi.set("مبلغ اسمی")
             self.txtmablaghesmi.bind("<KeyRelease>", self.format_txtmablaghesmi)
-            self.txtmablaghesmi.place(x=830, y=290, width=200, height=30)
-
-            self.lblmablaghesmi = Label(
-                self.frmsabtaghsat, text="مبلغ اسمی:", fg="#555", font=("Arial", 12), bg="#F4F4F4"
-            )
-            self.lblmablaghesmi.place(x=750, y=290)
+            self.txtmablaghesmi.place(relx=0.55, rely=0.358, width=200, height=30)
 
             # درصد اقساط
             self.darsad = ttk.Combobox(
-                self.frmsabtaghsat, background="white", foreground="black", justify="center", state="readonly", width=19
+                self.frmsabtaghsatbd, background="white", foreground="black", justify="center", state="readonly", width=19
             )
             self.darsad['values'] = self.aghsat()
             self.darsad.set(4)
-            self.darsad.place(x=650, y=350)
+            self.darsad.place(relx=0.442, rely=0.408)
 
             # انتخاب تعداد اقساط
             self.txtgest = ttk.Combobox(
-                self.frmsabtaghsat, background="white", foreground="black", justify="center", state="readonly", width=19
+                self.frmsabtaghsatbd, background="white", foreground="black", justify="center", state="readonly", width=19
             )
             self.txtgest.set(1)
             self.txtgest['values'] = self.aghsat()
-            self.txtgest.place(x=650, y=410)
-
-            self.lblaghsat = Label(self.frmsabtaghsat, text="اقساط:", fg="#555", font=("Arial", 12), bg="#F4F4F4")
-            self.lblaghsat.place(x=580, y=410)
+            self.txtgest.place(relx=0.442, rely=0.448)
 
             # روش پرداخت
             self.talachek = IntVar()
-            self.tala = ttk.Radiobutton(self.frmsabtaghsat, text='طلا', variable=self.talachek, value=1)
+            self.tala = ttk.Radiobutton(self.frmsabtaghsatbd, text='طلا', variable=self.talachek, value=1)
             self.tala.bind("<Button-1>", self.talaentry)
-            self.tala.place(x=770, y=450)
+            self.tala.place(relx=0.505, rely=0.488)
 
-            self.chek = ttk.Radiobutton(self.frmsabtaghsat, text='چک', variable=self.talachek, value=2)
+            self.chek = ttk.Radiobutton(self.frmsabtaghsatbd, text='چک', variable=self.talachek, value=2)
             self.chek.bind("<Button-1>", self.chekentry)
-            self.chek.place(x=650, y=450)
+            self.chek.place(relx=0.442, rely=0.488)
 
             # دکمه ثبت
             self.btnadd = Button(
-                self.frmsabtaghsat,
+                self.frmsabtaghsatbd,
                 text="ثبت",
                 bg="#4CAF50",
                 fg="white",
@@ -228,18 +383,18 @@ class App(Frame):
                 bd=2,
                 command=self.Onclicksabtaghsat,
             )
-            self.btnadd.place(x=690, y=600, width=100, height=40)
+            self.btnadd.place(relx=0.45, rely=0.588, width=100, height=40)
 
             # تاریخ و زمان
-            self.lbldatee = Label(self.frmsabtaghsat, font=("Arial", 12, "bold"), bg="#F4F4F4", fg="#555")
+            self.lbldatee = Label(self.frmsabtaghsatbd, font=("Arial", 12, "bold"), bg="#F4F4F4", fg="#555")
             self.update_timee()
-            self.lbldatee.place(x=630, y=10)
+            self.lbldatee.place(relx=0.48, rely=0.10, anchor="center")
 
             # دکمه تاریخ انتخاب
             self.start_date_button = Button(
-                self.frmsabtaghsat, text=">", command=self.open_start_date_calendar, bg="#4CAF50", fg="white"
+                self.frmsabtaghsatbd, text=">", command=self.open_start_date_calendar, bg="#4CAF50", fg="white"
             )
-            self.start_date_button.place(x=658, y=290, width=30, height=30)
+            self.start_date_button.place(relx=0.285, rely=0.358, width=30, height=30)
 
             # تقویم (در حالت اولیه None)
             self.calendar_window = None
@@ -249,54 +404,38 @@ class App(Frame):
     def chekentry(self, e):
         try:
             # برچسب سریال چک
-            self.lblserialchek = Label(
-                self.frmsabtaghsat,
-                text="سریال چک:",
-                fg="#555",
-                font=("Arial", 12),
-                bg="#F4F4F4",
-            )
-            self.lblserialchek.place(x=550, y=500)
-
-            # برچسب مبلغ چک
-            self.lblmablaghlchek = Label(
-                self.frmsabtaghsat,
-                text="مبلغ چک:",
-                fg="#555",
-                font=("Arial", 12),
-                bg="#F4F4F4",
-            )
-            self.lblmablaghlchek.place(x=550, y=550)
-
+            schek = StringVar()
             # ورودی سریال چک
             self.serialchek = Entry(
-                self.frmsabtaghsat,
+                self.frmsabtaghsatbd,
                 justify="center",
                 bg="#FFFFFF",
-                fg="#333",
-                font=("Arial", 14),
+                fg="gray",
+                font=("Arial", 12),
                 bd=2,
+                textvariable=schek,
             )
-            self.serialchek.place(x=650, y=500, width=200, height=30)
+            schek.set("سریال چک")
+            self.serialchek.place(relx=0.42, rely=0.518, width=200, height=30)
 
             # ورودی مبلغ چک
+            mchek = StringVar()
             self.mablaghchek = Entry(
-                self.frmsabtaghsat,
+                self.frmsabtaghsatbd,
                 justify="center",
                 bg="#FFFFFF",
-                fg="#333",
-                font=("Arial", 14),
+                fg="gray",
+                font=("Arial", 12),
                 bd=2,
+                textvariable=mchek,
             )
+            mchek.set("مبلغ چک")
             self.mablaghchek.bind("<KeyRelease>", self.format_mablaghchek)
-            self.mablaghchek.place(x=650, y=550, width=200, height=30)
+            self.mablaghchek.place(relx=0.42, rely=0.548, width=200, height=30)
 
             # مخفی‌سازی فیلدهای طلا
             self.typegold.place_forget()
             self.grams.place_forget()
-            self.lblgrams.place_forget()
-            self.lbltypetala.place_forget()
-
         except AttributeError:
             pass
 
@@ -304,53 +443,37 @@ class App(Frame):
 
     def talaentry(self, e):
         try:
-            # برچسب نوع طلا
-            self.lbltypetala = Label(
-                self.frmsabtaghsat,
-                text="نوع طلا:",
-                fg="#555",
-                font=("Arial", 12),
-                bg="#F4F4F4",
-            )
-            self.lbltypetala.place(x=550, y=500)
-
-            # برچسب گرم
-            self.lblgrams = Label(
-                self.frmsabtaghsat,
-                text="گرم:",
-                fg="#555",
-                font=("Arial", 12),
-                bg="#F4F4F4",
-            )
-            self.lblgrams.place(x=550, y=550)
-
             # ورودی نوع طلا
+            gold = StringVar()
             self.typegold = Entry(
-                self.frmsabtaghsat,
+                self.frmsabtaghsatbd,
                 justify="center",
                 bg="#FFFFFF",
-                fg="#333",
-                font=("Arial", 14),
+                fg="gray",
+                font=("Arial", 12),
                 bd=2,
+                textvariable=gold,
             )
-            self.typegold.place(x=650, y=500, width=200, height=30)
+            gold.set("نوع طلا")
+            self.typegold.place(relx=0.42, rely=0.518, width=200, height=30)
 
             # ورودی گرم
+            garam = StringVar()
             self.grams = Entry(
-                self.frmsabtaghsat,
+                self.frmsabtaghsatbd,
                 justify="center",
                 bg="#FFFFFF",
-                fg="#333",
-                font=("Arial", 14),
+                fg="gray",
+                font=("Arial", 12),
                 bd=2,
+                textvariable=garam,
             )
-            self.grams.place(x=650, y=550, width=200, height=30)
+            garam.set("گرم")
+            self.grams.place(relx=0.42, rely=0.548, width=200, height=30)
 
             # مخفی‌سازی فیلدهای چک
             self.serialchek.place_forget()
             self.mablaghchek.place_forget()
-            self.lblserialchek.place_forget()
-            self.lblmablaghlchek.place_forget()
 
         except AttributeError:
             pass
@@ -411,6 +534,7 @@ class App(Frame):
                 print(e)
 
     def sabtaghsatt(self):
+        aghsat = Repository()
         if self.esmi.isdigit():
             a = (int(self.esmi) * int(self.darsad.get())) / 100
 
@@ -443,18 +567,29 @@ class App(Frame):
 
                 # تبدیل تاریخ شمسی به رشته
                 installment_date_shamsi_str = f"{installment_date_shamsi.year}/{installment_date_shamsi.month:02d}/{installment_date_shamsi.day:02d}"
-                aghsat = Repository()
-                obj = code, self.txtname.get(), self.Phone.get(), number, karmozd1, kamel1, installment_date_shamsi_str, 'not paid', self.txtgest.get()
-                aghsat.addghest("aghsat", obj)
-            aghsat = Repository()
-            obj1 = code, self.txtname.get(), self.Phone.get(), self.txtserial.get(), kamel1, self.txtmodel.get()
-            aghsat.adddevice("device", obj1)
+
+                query = """INSERT INTO aghsat (code, name, phone, price, karmozd, koli, time, status, num) 
+                           VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)"""
+
+                params = (code, self.txtname.get(), self.Phone.get(), number, karmozd1, kamel1, installment_date_shamsi_str, 'not paid', self.txtgest.get())
+                aghsat.execute_query(query, params)
+
+            query2 = """INSERT INTO device (code, name, phone, serial, price, model) 
+                                       VALUES (%s, %s, %s, %s, %s, %s)"""
+            params2 = (code, self.txtname.get(), self.Phone.get(), self.txtserial.get(), kamel1, self.txtmodel.get())
+            aghsat.execute_query(query2, params2)
             if self.talachek.get() == 1:
-                obj = (code, self.txtname.get(), self.txtPhone.get(), 'Tala', self.typegold.get(), self.grams.get())
-                aghsat.addtype(obj)
+                query3 = """INSERT INTO type (code, name, phone, Type, tcname, g_m) 
+                                                       VALUES (%s, %s, %s, %s, %s, %s)"""
+                params3 = (code, self.txtname.get(), self.txtPhone.get(), 'Tala', self.typegold.get(), self.grams.get())
+                aghsat.execute_query(query3, params3)
+
             elif self.talachek.get() == 2:
-                obj = (code, self.txtname.get(), self.txtPhone.get(), 'Check', self.serialchek.get(), self.mablaghchek.get())
-                aghsat.addtype(obj)
+                query4 = """INSERT INTO type (code, name, phone, Type, tcname, g_m) 
+                                                                       VALUES (%s, %s, %s, %s, %s, %s)"""
+                params4 = (code, self.txtname.get(), self.txtPhone.get(), 'Check', self.serialchek.get(), self.mablaghchek.get())
+                aghsat.execute_query(query4, params4)
+
     # -------------------------------------------- taghvim ---------------------------------------
 
     def open_start_date_calendar(self):
@@ -589,25 +724,36 @@ class App(Frame):
     # -------------------------------------------- info aghsat---------------------------------------
 
     def infoaghsat(self):
+        window_width = self.frmlogin.winfo_width()
+        window_height = self.frmlogin.winfo_height()
+
+        frame_width = int(window_width * 0.8)
+        frame_height = int(window_height * 1.0)
         """اطلاعات اقساط را نمایش می‌دهد"""
         user = Repository()
-        result = user.Exist("users", self.Phone.get())
+        query = """SELECT * FROM users where phone = %s"""
+        params = (self.Phone.get(),)
+        result = user.execute_query(query, params, fetch=True)
 
-        self.frminfoaghsat = Frame(self.frmscreenuser, width=1300, height=800)
+        self.frminfoaghsat = Frame(self.frmscreenuser, width=frame_width, height=frame_height)
+
+        self.frminfiagsatbd = Frame(self.frmscreenuser, width=frame_width, height=frame_height, relief="raised")
+
+        self.frminfiagsatbd.place(relx=0.4, rely=0.5, anchor="center")
 
         # کادر متنی برای نمایش اطلاعات
-        self.textbox = tk.Text(self.frminfoaghsat, width=45, height=38, state="disabled",
+        self.textbox = tk.Text(self.frminfiagsatbd, width=38, height=38, state="disabled",
                                bg="#EAEAEA", fg="#333", font=("Arial", 12), bd=2, relief="solid")
-        self.textbox.place(x=10, y=50)
+        self.textbox.place(relx=0.115, rely=0.4, anchor="center")
         self.test()
 
         for item in result:
             self.textbox.config(state=NORMAL)
 
             # نمایش تاریخ ثبت‌نام و ساعت
-            self.lbldate = Label(self.frminfoaghsat, font="arial 12 bold")
+            self.lbldate = Label(self.frminfiagsatbd, font="arial 12 bold")
             self.update_time()
-            self.lbldate.place(x=20, y=20)
+            self.lbldate.place(relx=0.45, rely=0.02)
 
             self.textbox.insert(tk.END, f"\nتاریخ ثبت نام : {item[4]} - ساعت ثبت نام {item[5]}")
             self.textbox.config(state=DISABLED)
@@ -628,19 +774,19 @@ class App(Frame):
         self.txtpaid.place_forget()
 
         # دکمه‌ها با استایل مدرن
-        self.btntasfie = Button(self.frminfoaghsat, text="پرداخت", background="#28a745", command=self.oneclickpymuont,
+        self.btntasfie = Button(self.frminfiagsatbd, text="پرداخت", background="#28a745", command=self.oneclickpymuont,
                                 font=("Arial", 12, "bold"), relief="flat", fg="white", width=10)
         self.btntasfie.place_forget()
 
-        self.btndelete = Button(self.frminfoaghsat, text="حذف", background="#dc3545", command=self.oneclickdelete,
+        self.btndelete = Button(self.frminfiagsatbd, text="حذف", background="#dc3545", command=self.oneclickdelete,
                                 font=("Arial", 12, "bold"), relief="flat", fg="white", width=10)
         self.btndelete.place_forget()
 
-        self.btncancel = Button(self.frminfoaghsat, text="کنسل", command=self.onclickcancel,
+        self.btncancel = Button(self.frminfiagsatbd, text="کنسل", command=self.onclickcancel,
                                 font=("Arial", 12, "bold"), relief="flat", fg="black", width=10)
         self.btncancel.place_forget()
 
-        self.btnnotasfie = Button(self.frminfoaghsat, text="لغو پرداخت", background="#dc3545",
+        self.btnnotasfie = Button(self.frminfiagsatbd, text="لغو پرداخت", background="#dc3545",
                                   command=self.oneclickcpymuont,
                                   font=("Arial", 12, "bold"), relief="flat", fg="white", width=10)
         self.btnnotasfie.place_forget()
@@ -649,15 +795,15 @@ class App(Frame):
         s = ['row', 'code', 'name', 'phone', 'price', 'karmozd', 'kamel', 'time', 'status', 'num']
 
         # جدول اقساط پرنشده
-        self.tableprnashode = ttk.Treeview(self.frminfoaghsat, columns=s, show='headings', height=15)
+        self.tableprnashode = ttk.Treeview(self.frminfiagsatbd, columns=s, show='headings', height=14)
 
         self.tableprnashode.column('row', width=0, stretch=tk.NO)
-        self.tableprnashode.column('code', width=100, anchor='center')
-        self.tableprnashode.column('name', width=150, anchor='center')
-        self.tableprnashode.column('phone', width=150, anchor='center')
-        self.tableprnashode.column('price', width=200, anchor='center')
+        self.tableprnashode.column('code', width=60, anchor='center')
+        self.tableprnashode.column('name', width=120, anchor='center')
+        self.tableprnashode.column('phone', width=100, anchor='center')
+        self.tableprnashode.column('price', width=120, anchor='center')
         self.tableprnashode.column('time', width=100, anchor='center')
-        self.tableprnashode.column('status', width=100, anchor='center')
+        self.tableprnashode.column('status', width=80, anchor='center')
         self.tableprnashode.column('karmozd', width=0, stretch=tk.NO)
         self.tableprnashode.column('kamel', width=0, stretch=tk.NO)
         self.tableprnashode.column('num', width=0, stretch=tk.NO)
@@ -672,20 +818,20 @@ class App(Frame):
 
         self.tableprnashode.bind('<Button-1>', self.selectprnashode)
 
-        self.tableprnashode.place(x=480, y=49)
+        self.tableprnashode.place(relx=0.25, rely=0.07)
         self.cleartabaleprnashode()
         self.inserttableprnashode()
 
         # جدول اقساط پرداخت شده
-        self.tableprshode = ttk.Treeview(self.frminfoaghsat, columns=s, show='headings', height=15)
+        self.tableprshode = ttk.Treeview(self.frminfiagsatbd, columns=s, show='headings', height=14)
 
         self.tableprshode.column('row', width=0, stretch=tk.NO)
-        self.tableprshode.column('code', width=100, anchor='center')
-        self.tableprshode.column('name', width=150, anchor='center')
-        self.tableprshode.column('phone', width=150, anchor='center')
-        self.tableprshode.column('price', width=200, anchor='center')
+        self.tableprshode.column('code', width=60, anchor='center')
+        self.tableprshode.column('name', width=120, anchor='center')
+        self.tableprshode.column('phone', width=100, anchor='center')
+        self.tableprshode.column('price', width=120, anchor='center')
         self.tableprshode.column('time', width=100, anchor='center')
-        self.tableprshode.column('status', width=100, anchor='center')
+        self.tableprshode.column('status', width=80, anchor='center')
         self.tableprshode.column('karmozd', width=0, stretch=tk.NO)
         self.tableprshode.column('kamel', width=0, stretch=tk.NO)
         self.tableprshode.column('num', width=0, stretch=tk.NO)
@@ -699,7 +845,7 @@ class App(Frame):
         self.tableprshode.heading('status', text='وضعیت', anchor='center')
         self.tableprshode.bind('<Button-1>', self.selectprshode)
 
-        self.tableprshode.place(x=480, y=411)
+        self.tableprshode.place(relx=0.25, rely=0.435)
         self.cleartabaleprshode()
         self.inserttableprshode()
 
@@ -708,19 +854,23 @@ class App(Frame):
         unit = set()
 
         a = Repository()
-        result = a.Exist("device", phone)
-        result1 = a.Exist("aghsat", phone)
+        query_device = """SELECT * FROM device where phone = %s"""
+        params = (phone,)
+        device1 = a.execute_query(query_device, params, fetch=True)
+
+        query_aghsat = """SELECT * FROM aghsat where phone = %s"""
+        aghsat1 = a.execute_query(query_aghsat, params, fetch=True)
 
         # شمارش تعداد تکرار هر کد در result1
         code_count = {}
         prshode = {}
         prnashode = {}
 
-        if result and result1:
+        if device1 and aghsat1:
             self.textbox.config(state=NORMAL)
 
             # اضافه کردن مقادیر به set برای جلوگیری از تکرار
-            for item1 in result1:
+            for item1 in aghsat1:
                 key = item1[1]
                 unit.add((key, item1[5], item1[6], item1[9]))  # فقط مقادیر مورد نظر را اضافه کنید
                 # شمارش تعداد تکرار کد دستگاه
@@ -743,7 +893,7 @@ class App(Frame):
 
             grouped_data = {}
 
-            for device in result:
+            for device in device1:
                 device_code = device[1]  # کد دستگاه در ستون 1
                 if device_code not in grouped_data:
                     grouped_data[device_code] = {
@@ -787,10 +937,11 @@ class App(Frame):
 
     def inserttableprnashode(self):
         user = Repository()
-        result = user.Exist("aghsat", self.Phone.get())
+        query = """SELECT * FROM aghsat where phone = %s and status = %s"""
+        params = (self.Phone.get(), "not paid")
+        result = user.execute_query(query, params, fetch=True)
         for item in result:
-            if item[8] == "not paid":
-                self.tableprnashode.insert('', END, values=item)
+            self.tableprnashode.insert('', END, values=item)
 
     def cleartabaleprnashode(self):
         for item in self.tableprnashode.get_children():
@@ -803,9 +954,9 @@ class App(Frame):
             self.id.set(self.tableprnashode.item(selection)["values"][0])
             self.code.set(self.tableprnashode.item(selection)["values"][1])
             self.paid.set("paid")
-            self.btntasfie.place(x=850, y=375)
-            self.btndelete.place(x=950, y=375)
-            self.btncancel.place(x=750, y=375)
+            self.btntasfie.place(relx=0.5, rely=0.385)
+            self.btndelete.place(relx=0.4, rely=0.385)
+            self.btncancel.place(relx=0.3, rely=0.385)
 
     def onclickcancel(self):
         self.btntasfie.place_forget()
@@ -824,14 +975,15 @@ class App(Frame):
         if selection != ():
             self.id.set(self.tableprshode.item(selection)["values"][0])
             self.paid.set("not paid")
-            self.btnnotasfie.place(x=850, y=750)
-            self.btncancel.place(x=750, y=750)
+            self.btnnotasfie.place(relx=0.45, rely=0.75)
+            self.btncancel.place(relx=0.35, rely=0.75)
     def inserttableprshode(self):
         user = Repository()
-        result = user.Exist("aghsat", self.Phone.get())
+        query = """SELECT * FROM aghsat where phone = %s and status = %s"""
+        params = (self.Phone.get(), "paid")
+        result = user.execute_query(query, params, fetch=True)
         for item in result:
-            if item[8] == "paid":
-                self.tableprshode.insert('', END, values=item)
+            self.tableprshode.insert('', END, values=item)
 
     def cleartabaleprshode(self):
         for item in self.tableprshode.get_children():
@@ -842,19 +994,24 @@ class App(Frame):
         result = messagebox.askyesno('هشدار', 'ایا میخاهید این قسط پرداخت شود؟')
         if result:
             user = Repository()
-            obj = self.paid.get(), self.id.get()
-            user.Update("aghsat", obj)
+            query = """UPDATE aghsat SET status = %s WHERE id_aghsat = %s"""
+            params = (self.paid.get(), self.id.get())
+            user.execute_query(query, params)
             self.infoaghsat()
 
     def oneclickdelete(self):
         user = Repository()
         message = messagebox.askyesno('هشدار', 'مطمعن به حذف این کد هستید؟ (همه ثبت هایی که با این کد هستند حذف خواهند شد)')
         if message:
-            result = user.Delete("aghsat", self.code.get())
-            result1 = user.Delete("device", self.code.get())
-            result3 = user.Delete("type", self.code.get())
-            if result and result1 and result3:
-                messagebox.showinfo('ok', 'ok')
+            query_aghsat = """DELETE FROM aghsat where code = %s"""
+            query_device = """DELETE FROM device where code = %s"""
+            query_type = """DELETE FROM type where code = %s"""
+            params = (self.code.get(),)
+            result_aghsat = user.execute_query(query_aghsat, params)
+            result_device = user.execute_query(query_device, params)
+            result_type = user.execute_query(query_type, params)
+            if result_aghsat and result_device and result_type:
+                messagebox.showinfo('ok', 'user deleted')
                 self.infoaghsat()
             else:
                 messagebox.showinfo('cancel', 'cancel')
@@ -863,8 +1020,9 @@ class App(Frame):
         result = messagebox.askyesno('هشدار', 'ایا میخاهید این پرداخت را کنسل کنید؟')
         if result:
             user = Repository()
-            obj = self.paid.get(), self.id.get()
-            user.Update("aghsat", obj)
+            query = """UPDATE aghsat SET status = %s where id_aghsat = %s"""
+            params = (self.paid.get(), self.id.get())
+            user.execute_query(query, params)
             self.infoaghsat()
 
     def update_time(self):
@@ -872,58 +1030,26 @@ class App(Frame):
         self.lbldate.config(text=f"Today : {date} - {current_time}")
         self.frminfoaghsat.after(1000, self.update_time)
 
-    def ScreenUser(self):
-        self.frmscreenuser = Frame(self.screen, width=1500, height=800, bg="white")
-        self.infoaghsat()
 
-        # استایل برای منو و برچسب‌ها
-        label_style = {
-            "font": ("Arial", 16, "bold"),
-            "fg": "#ecf0f1",
-            "bg": "#34495e",
-            "width": 25,
-            "height": 2,
-            "bd": 0,
-            "anchor": "w",
-            "padx": 20,
-            "pady": 10
-        }
-
-        self.frmmenu = Frame(self.frmscreenuser, width=200, height=800, bg="#2c3e50")
-
-        self.lblsabtaghsat = Label(self.frmmenu, text=" اطلاعات اقساط ")
-        self.lblsabtaghsat.configure(**label_style)
-        self.lblsabtaghsat.bind("<Button-1>", self.clickinfoaghsat)
-        self.lblsabtaghsat.place(x=0, y=50)
-
-        self.lblinfoaghsat = Label(self.frmmenu, text="ثبت اقساط")
-        self.lblinfoaghsat.configure(**label_style)
-        self.lblinfoaghsat.bind("<Button-1>", self.clicksabtaghsat)
-        self.lblinfoaghsat.place(x=0, y=120)
-
-        self.lblprint = Label(self.frmmenu, text="پرینت")
-        self.lblprint.configure(**label_style)
-        self.lblprint.bind("<Button-1>", self.clickprint)
-        self.lblprint.place(x=0, y=190)
-
-        self.frmscreenuser.place(x=0, y=0)
-
-        for label in [self.lblsabtaghsat, self.lblinfoaghsat, self.lblprint]:
-            label.bind("<Enter>", lambda e: self.change_color_on_hover(e, "#16a085"))
-            label.bind("<Leave>", lambda e: self.change_color_on_hover(e, "#34495e"))
-
-        self.frmmenu.place(x=1300, y=0)
 
     def clickprint(self, e):
         # فریم پرینت
-        self.frmmenuprint = Frame(self.frmscreenuser, width=1300, height=800, bg="white")
+        window_width = self.frmscreenuser.winfo_width()
+        window_height = self.frmscreenuser.winfo_height()
+
+        frame_width = int(window_width * 0.8)
+        frame_height = int(window_height * 1.0)
+        self.frmmenuprint = Frame(self.frmscreenuser, width=frame_width, height=frame_height)
         self.frmmenuprint.place(x=0, y=0)
 
         result = self.insertvaluecombomodel()
 
+        self.frmmenuprintbd = Frame(self.frmscreenuser, width=400, height=400, relief="raised")
+        self.frmmenuprintbd.place(relx=0.4, rely=0.5, anchor="center")
 
-        self.combomodel = ttk.Combobox(self.frmmenuprint, state='readonly', justify='center')
-        self.combomodel.place(x=1000, y=20)
+
+        self.combomodel = ttk.Combobox(self.frmmenuprintbd, state='readonly', justify='center')
+        self.combomodel.place(relx=0.5, rely=0.3, anchor="center")
 
         try:
             self.combomodel['values'] = result
@@ -933,8 +1059,16 @@ class App(Frame):
 
 
         # دکمه پرینت
-        self.btnprint = Button(self.frmmenuprint, text="پرینت", command=self.print_dialog)
-        self.btnprint.place(x=600, y=500)
+        self.btnprint = Button(
+            self.frmmenuprintbd,
+            text="پرینت",
+            width=5,
+            height=1,
+            background="blue",
+            foreground="white",
+            command=self.print_dialog
+        )
+        self.btnprint.place(relx=0.5, rely=0.5, anchor="center")
 
     def print_dialog(self):
         try:
@@ -973,8 +1107,13 @@ class App(Frame):
 
             # انجام پردازش‌ها بر روی داده‌ها
             user = Repository()
-            result = user.alldevice("device", self.Phone.get(), self.combomodel.get())
-            result1 = user.Existaghsatcode('aghsat', result[0][1])
+            query_device = """SELECT * FROM device where phone = %s and model = %s"""
+            params_device = (self.Phone.get(), self.combomodel.get())
+            result = user.execute_query(query_device, params_device, fetch=True)
+
+            query_aghsat = """SELECT * FROM aghsat where code = %s"""
+            params_aghsat = (result[0][1], )
+            result1 = user.execute_query(query_aghsat, params_aghsat, fetch=True)
             table_rows = ""
             num = 0
             for row in result1:
@@ -1015,7 +1154,9 @@ class App(Frame):
 
     def insertvaluecombomodel(self):
         user = Repository()
-        result = user.Exist('device', self.Phone.get())
+        query = """SELECT * FROM device where phone = %s"""
+        params = (self.Phone.get(),)
+        result = user.execute_query(query, params, fetch=True)
         listt = []
         for item in result:
             listt.append(item[6])
@@ -1034,43 +1175,57 @@ class App(Frame):
     def OnclickRegister(self):
         if self.txtrname.get() == '' or not self.txtrname.get().isalpha():
             messagebox.showerror("خطا", "فیلد نام را فقط با حروف پر کنید")
+            self.txtrname.focus_set()
         elif self.txtrfamily.get() == '' or not self.txtrfamily.get().isalpha():
             messagebox.showerror("خطا", "فیلد فامیلی را فقط با حروف پر کنید")
+            self.txtrfamily.focus_set()
         elif self.txtrPhone.get() == '' or not self.txtrPhone.get().isdigit():
             messagebox.showerror("خطا", "فیلد شماره را فقط با اعداد پر کنید")
+            self.txtrPhone.focus_set()
         elif len(self.Phone.get()) < 11:
             messagebox.showerror("خطا", "شماره اشتباه است")
+            self.txtrPhone.focus_set()
             self.cleanphone()
         else:
             user = Repository()
-            obj = self.txtrname.get(), self.txtrfamily.get(), self.Phone.get(), date, Time
-            result = user.Exist("users", self.Phone.get())
+            query_Exist = """SELECT * FROM users where phone = %s"""
+            params_Exist = (self.Phone.get(),)
+            result = user.execute_query(query_Exist, params_Exist, fetch=True)
+            params_add_user = self.txtrname.get(), self.txtrfamily.get(), self.Phone.get(), date, Time
             if result:
                 messagebox.showerror("خطا", "این کاربر قبلا ثبت نام شده است")
             else:
-                user.adduser("users", obj)
+                query_add_user = """INSERT INTO users (name, family, phone, date, time) values (%s, %s, %s, %s, %s)"""
+                user.execute_query(query_add_user, params_add_user)
+                messagebox.showinfo("موفقیت امیز", "کاربر با موفقیت ثبت نام شد")
                 self.ScreenUser()
 
     def Register(self):
+        window_width = self.screen.winfo_width()
+        window_height = self.screen.winfo_height()
+        self.frame_width = int(window_width * 1.0)
+        self.frame_height = int(window_height * 1.0)
         # فریم اصلی ثبت‌نام
-        self.frmregister = Frame(self.screen, width=1500, height=800, bg="#1B1F38")
+        self.frmregister = Frame(self.screen, width=self.frame_width, height=self.frame_height, bg="#1B1F38")
+        self.frmregisterbd = Frame(self.frmregister, width=400, height=400, bg="#FFFFFF", relief="raised", bd=10)
+        self.frmregisterbd.place(relx=0.5, rely=0.5, anchor="center")
         self.frmregister.place(x=0, y=0)
         # عنوان فرم
         self.mtnregister = Label(
-            self.frmregister,
+            self.frmregisterbd,
             text="ثبت نام کاربر",
-            fg="white",
-            font=("Arial", 25, "bold"),
-            bg="#1B1F38",
+            fg="black",
+            bg="white",
+            font=("Arial", 25, "bold")
         )
-        self.mtnregister.place(x=660, y=180)
+        self.mtnregister.place(relx=0.5, rely=0.10, anchor="center")
 
         # فیلد ورودی نام کاربر
         self.namee = StringVar()
         self.txtrname = Entry(
-            self.frmregister,
-            bg="#FFFFFF",
-            fg="#000",
+            self.frmregisterbd,
+            bg="#F3F4F6",
+            fg="#000000",
             bd=0,
             justify="center",
             textvariable=self.namee,
@@ -1078,17 +1233,17 @@ class App(Frame):
         )
         self.namee.set("نام کاربر")
         self.txtrname.bind("<Button-1>", self.clearname)
-        self.txtrname.place(x=585, y=250, width=300, height=40)
+        self.txtrname.place(relx=0.5, rely=0.25, anchor="center", width=300, height=40)
 
         # حاشیه برای فیلد
-        Frame(self.frmregister, bg="#FF6B6B", width=310, height=2).place(x=580, y=292)
+        Frame(self.frmregisterbd, bg="#1B75BB", width=310, height=2).place(relx=0.5, rely=0.30, anchor="center")
 
         # فیلد ورودی نام خانوادگی
         self.familyy = StringVar()
         self.txtrfamily = Entry(
-            self.frmregister,
-            bg="#FFFFFF",
-            fg="#000",
+            self.frmregisterbd,
+            bg="#F3F4F6",
+            fg="#000000",
             bd=0,
             justify="center",
             textvariable=self.familyy,
@@ -1096,15 +1251,15 @@ class App(Frame):
         )
         self.familyy.set("نام خانوادگی")
         self.txtrfamily.bind("<Button-1>", self.clearfamily)
-        self.txtrfamily.place(x=585, y=310, width=300, height=40)
-        Frame(self.frmregister, bg="#FF6B6B", width=310, height=2).place(x=580, y=352)
+        self.txtrfamily.place(relx=0.5, rely=0.40, anchor="center", width=300, height=40)
+        Frame(self.frmregisterbd, bg="#1B75BB", width=310, height=2).place(relx=0.5, rely=0.45, anchor="center")
 
         # فیلد ورودی شماره تلفن
         self.Phone = StringVar()
         self.txtrPhone = Entry(
-            self.frmregister,
-            bg="#FFFFFF",
-            fg="#000",
+            self.frmregisterbd,
+            bg="#F3F4F6",
+            fg="#000000",
             bd=0,
             justify="center",
             textvariable=self.Phone,
@@ -1112,34 +1267,34 @@ class App(Frame):
         )
         self.Phone.set("09171112222")
         self.txtrPhone.bind("<Button-1>", self.clearphone)
-        self.txtrPhone.place(x=585, y=370, width=300, height=40)
-        Frame(self.frmregister, bg="#FF6B6B", width=310, height=2).place(x=580, y=412)
+        self.txtrPhone.place(relx=0.5, rely=0.55, anchor="center", width=300, height=40)
+        Frame(self.frmregisterbd, bg="#1B75BB", width=310, height=2).place(relx=0.5, rely=0.60, anchor="center")
 
         # دکمه ورود کاربر
         self.lbllogin = Label(
-            self.frmregister,
+            self.frmregisterbd,
             text="ورود کاربر",
-            fg="#4ACFAC",
+            fg="#1B75BB",
             font=("Arial", 15, "bold"),
-            bg="#1B1F38",
+            bg="white",
             cursor="hand2",
         )
         self.lbllogin.bind("<Button-1>", self.oneclickLogin)
-        self.lbllogin.place(x=700, y=430)
+        self.lbllogin.place(relx=0.5, rely=0.68, anchor="center")
 
         # دکمه ثبت‌نام
         self.btnregister = Button(
-            self.frmregister,
+            self.frmregisterbd,
             text="ثبت نام",
             command=self.OnclickRegister,
-            bg="#4ACFAC",
+            bg="#4CAF50",
             fg="white",
             font=("Arial", 14, "bold"),
             activebackground="#3BAF9E",
             activeforeground="white",
             bd=0,
         )
-        self.btnregister.place(x=640, y=480, width=200, height=40)
+        self.btnregister.place(relx=0.5, rely=0.85, anchor="center", width=200, height=40)
 
     def clearphone(self, e):
         if self.Phone.get() == '09171112222':
@@ -1153,138 +1308,78 @@ class App(Frame):
         if self.familyy.get() == 'نام خانوادگی':
             self.familyy.set('')
 
-    # -------------------------------------------- Login User ---------------------------------------
 
-    def cleanphone(self):
-        self.Phone.set('')
+        # -------------------------------------------- Login Dr ---------------------------------------\
 
-    def oneclickLogin(self, e):
-        self.Login()
-        self.cleanphone()
+    def LoginDr(self):
+        window_width = self.screen.winfo_width()
+        window_height = self.screen.winfo_height()
 
-    def oneclicklogin(self):
-        user = Repository()
-        if len(self.Phone.get()) < 11:
-            messagebox.showerror("خطا", "شماره اشتباه است")
-            self.cleanphone()
-        else:
-            result = user.Exist("users", self.Phone.get())
-            if not result:
-                messagebox.showerror("خطا", "کاربر پیدا نشد")
-            else:
-                self.ScreenUser()
+        frame_width = int(window_width * 1.0)
+        frame_height = int(window_height * 1.0)
+        # فرم اصلی ورود
+        self.frmlogindr = Frame(self.screen, width=frame_width, height=frame_height, bg="#1a1a1a")
+        self.frmlogindrbd = Frame(self.frmlogindr, width=400, height=400, bg="#FFFFFF", relief="raised", bd=10)
+        self.frmlogindrbd.place(relx=0.5, rely=0.5, anchor="center")
+        self.frmlogindr.place(x=0, y=0)
 
-    def Login(self):
-        # فریم اصلی ورود
-        self.frmlogin = Frame(self.screen, width=1500, height=800, bg="#1B1F38")
-        self.frmlogin.place(x=0, y=0)
-
-        # فریم برجسته برای ورود
-        self.frmloginbd = Frame(self.frmlogin, width=400, height=400, bg="#FFFFFF", relief="raised", bd=10)
-        self.frmloginbd.place(relx=0.5, rely=0.5, anchor="center")
-
-        # عنوان فرم
-        self.mtnregister = Label(
-            self.frmloginbd,
-            text="ورود کاربر",
-            fg="#1B1F38",
-            font=("Arial", 20, "bold"),
-            bg="#FFFFFF",
+        self.lbllogindr = Label(
+            self.frmlogindrbd,
+            text="پنل مدیریت",
+            fg="black",
+            font=("Arial", 22, "bold"),
+            bg='white'
         )
-        self.mtnregister.place(relx=0.5, rely=0.15, anchor="center")
+        self.lbllogindr.place(relx=0.5, rely=0.15, anchor="center")
 
         # لیبل شماره تلفن
         self.lblphonee = Label(
-            self.frmloginbd,
-            text="شماره تلفن:",
+            self.frmlogindrbd,
+            text="رمز عبور:",
             font=("Arial", 12),
             bg="#FFFFFF",
             fg="#6B7280",
         )
         self.lblphonee.place(relx=0.5, rely=0.35, anchor="center")
 
-        # فیلد ورودی شماره تلفن
-        self.txtlogin = Entry(
-            self.frmloginbd,
+        # فیلد ورودی رمز عبور (استایل جدید)
+        self.txtlogindr = Entry(
+            self.frmlogindrbd,
             bg="#F3F4F6",
             fg="#000000",
             bd=0,
-            justify="center",
             font=("Arial", 14),
-            textvariable=self.Phone,
+            justify="center",
         )
-        self.txtlogin.bind("<Button-1>", self.clearphone)
-        self.txtlogin.place(relx=0.5, rely=0.45, anchor="center", width=250, height=30)
 
-        # خط زیر فیلد شماره تلفن
-        Frame(self.frmloginbd, bg="#1B75BB", width=260, height=2).place(relx=0.5, rely=0.51, anchor="center")
 
-        # لینک ثبت‌نام
-        self.lblregister = Label(
-            self.frmloginbd,
-            text="ثبت ‌نام کاربر",
-            fg="#1B75BB",
-            font=("Arial", 15, "bold"),
-            bg="#FFFFFF",
-            cursor="hand2",
-        )
-        self.lblregister.bind("<Button-1>", self.oneclickRegister)
-        self.lblregister.place(relx=0.5, rely=0.65, anchor="center")
+        self.txtlogindr.place(relx=0.5, rely=0.45, anchor="center")
+
+        Frame(self.frmlogindrbd, bg="#1B75BB", width=260, height=2).place(relx=0.5, rely=0.51, anchor="center")
+
 
         # دکمه ورود
-        self.btnlogin = Button(
-            self.frmloginbd,
-            text="ورود",
-            command=self.oneclicklogin,
-            bg="#4CAF50",
-            fg="white",
-            font=("Arial", 12, "bold"),
-            bd=0,
-            activebackground="#45A049",
-            activeforeground="white",
-        )
-        self.btnlogin.place(relx=0.5, rely=0.8, anchor="center", width=200, height=40)
-
-
-        # -------------------------------------------- Login Dr ---------------------------------------\
-
-    def LoginDr(self):
-        # فرم اصلی ورود
-        self.frmlogindr = Frame(self.screen, width=1500, height=800, bg="#1a1a1a")
-        self.frmlogindr.place(x=0, y=0)
-
-        # فیلد ورودی رمز عبور (استایل جدید)
-        self.txtlogindr = Entry(self.frmlogindr)
-        self.txtlogindr.configure(bg="#333", fg="#fff", bd=2, font=("Arial", 14), relief="flat", justify="center",
-                                  insertbackground='white', width=25)
-
-        # ایجاد افکت سایه و لبه‌های گرد برای فیلد ورودی
-        self.txtlogindr.config(highlightbackground="black", highlightcolor="#00b8d4", highlightthickness=2)
-
-        # افکت روی فیلد ورودی - زمانی که روی فیلد کلیک می‌شود
-        self.txtlogindr.bind("<FocusIn>", lambda event: self.txtlogindr.config(bg="#444"))
-        self.txtlogindr.bind("<FocusOut>", lambda event: self.txtlogindr.config(bg="#333"))
-
-        self.txtlogindr.place(x=650, y=290)
-
-        # برچسب رمز عبور
-        self.lbllogindr = Label(self.frmlogindr)
-        self.lbllogindr.configure(text="رمز عبور", fg="white", font=("Arial", 16, "bold"), bg='#1a1a1a')
-        self.lbllogindr.place(x=570, y=290)
-
-        # دکمه ورود
-        self.btnlogindr = Button(self.frmlogindr)
+        self.btnlogindr = Button(self.frmlogindrbd)
         self.btnlogindr.configure(text="ورود", bg="#4CAF50", fg="white", bd=2, relief="flat",
                                   font=("Arial", 14, "bold"), command=self.oneclicklogindr)
-        self.btnlogindr.place(x=750, y=350)
+        self.btnlogindr.place(relx=0.43, rely=0.55)
 
     def ScreenDr(self):
-        self.screendr = Frame(self.frmlogindr, width=1300, height=800)
+        window_width = self.frmlogindr.winfo_width()
+        window_height = self.frmlogindr.winfo_height()
+
+        self.width_80 = int(window_width * 0.8)
+        self.heaght_80 = int(window_height * 1.0)
+
+        self.screendr = Frame(self.frmlogindr, width=self.width_80, height=self.heaght_80)
         self.Amar('')
 
-        self.menudr = Frame(self.frmlogindr, width=200, height=800)
+        frame_width_1 = int(window_width * 0.2)
+        frame_height_1 = int(window_height * 1.0)
+
+        self.menudr = Frame(self.frmlogindr, width=frame_width_1, height=frame_height_1, bg="#2c3e50")
         self.MenuDr()
-        self.menudr.place(x=1300, y=0)
+        self.menudr.place(x=self.width_80, y=0)
         self.screendr.place(x=0, y=0)
 
     def oneclicklogindr(self):
@@ -1295,9 +1390,6 @@ class App(Frame):
 
     def MenuDr(self):
         # فرم منو
-        self.menudr = Frame(self.screen, width=400, height=800, bg="#2c3e50")
-        self.menudr.place(x=0, y=0)
-
         # استایل برای منو و برچسب‌ها
         label_style = {
             "font": ("Arial", 16, "bold"),
@@ -1342,13 +1434,12 @@ class App(Frame):
             label.bind("<Leave>", lambda e: self.change_color_on_hover(e, "#34495e"))
 
         # تنظیمات طراحی برای تغییر رنگ هنگام هاور
-        self.menudr.place(x=0, y=0)
 
     def change_color_on_hover(self, event, color):
         event.widget.config(bg=color)
 
     def Amar(self, e):
-        self.frmamar = Frame(self.screendr, width=1300, height=800)
+        self.frmamar = Frame(self.screendr, width=self.width_80, height=self.heaght_80)
         result = self.CountsAmar()
 
         self.Phonedr = StringVar()
@@ -1426,7 +1517,10 @@ class App(Frame):
         self.frminfoaghsatdr = Frame(self.info, width=1500, height=800)
         self.frminfoaghsatdr.place(x=0, y=0)
         user = Repository()
-        result = user.Exist("users", int(self.Phonedr.get()))
+
+        query = """SELECT * FROM users where phone = %s"""
+        params = (self.Phonedr.get(),)
+        result = user.execute_query(query, params, fetch=True)
 
         # کادر متنی برای نمایش اطلاعات
         self.textbox1 = tk.Text(self.frminfoaghsatdr, width=45, height=38, state="disabled",
@@ -1534,8 +1628,9 @@ class App(Frame):
         result = messagebox.askyesno('هشدار', 'ایا میخاهید این پرداخت را کنسل کنید؟')
         if result:
             user = Repository()
-            obj = self.paid.get(), self.id.get()
-            user.Update("aghsat", obj)
+            query = """UPDATE aghsat SET status = %s where id_aghsat = %s"""
+            params = (self.paid.get(), self.id.get())
+            user.execute_query(query, params)
             self.reload_values_newtk()
 
     def onclickcancel1(self):
@@ -1554,11 +1649,16 @@ class App(Frame):
         user = Repository()
         message = messagebox.askyesno('هشدار', 'مطمعن به حذف این کد هستید؟ (همه ثبت هایی که با این کد هستند حذف خواهند شد)')
         if message:
-            result = user.Delete("aghsat", self.code.get())
-            result1 = user.Delete("device", self.code.get())
-            result3 = user.Delete("type", self.code.get())
-            if result and result1 and result3:
-                messagebox.showinfo('ok', 'ok')
+            aghsat_delete = """DELETE FROM aghsat WHERE code = %s"""
+            device_delete = """DELETE FROM device WHERE code = %s"""
+            type_delete = """DELETE FROM type WHERE code = %s"""
+
+            params = (self.code.get(),)
+
+
+            user.execute_query(aghsat_delete, params, fetch=False)
+            if aghsat_delete and device_delete and type_delete:
+                messagebox.showinfo('موفقیت امیز', 'کاربر با موفقیت حذف شد')
                 self.reload_values_newtk()
             else:
                 messagebox.showinfo('cancel', 'cancel')
@@ -1567,8 +1667,9 @@ class App(Frame):
         result = messagebox.askyesno('هشدار', 'ایا میخاهید این قسط پرداخت شود؟')
         if result:
             user = Repository()
-            obj = self.paid.get(), self.id.get()
-            user.Update("aghsat", obj)
+            query = """UPDATE aghsat SET status = %s where id_aghsat = %s"""
+            params = (self.paid.get(), self.id.get())
+            user.execute_query(query, params, fetch=False)
             self.reload_values_newtk()
 
     def selectprshode1(self, e):
@@ -1581,9 +1682,10 @@ class App(Frame):
 
     def inserttableprshode1(self):
         user = Repository()
-        result = user.Exist("aghsat", int(self.Phonedr.get()))
+        query = """SELECT * FROM aghsat WHERE phone = %s and status = %s"""
+        params = (int(self.Phonedr.get()), "paid")
+        result = user.execute_query(query, params, fetch=True)
         for item in result:
-            if item[8] == "paid":
                 self.tableprshode1.insert('', END, values=item)
 
     def cleartabaleprshode1(self):
@@ -1608,9 +1710,10 @@ class App(Frame):
 
     def inserttableprnashode1(self):
         user = Repository()
-        result = user.Exist("aghsat", int(self.Phonedr.get()))
+        query = """SELECT * FROM aghsat WHERE phone = %s and status = %s"""
+        params = ( int(self.Phonedr.get()), "not paid")
+        result = user.execute_query(query, params, fetch=True)
         for item in result:
-            if item[8] == "not paid":
                 self.tableprnashode1.insert('', END, values=item)
 
     def test1(self):
@@ -1618,19 +1721,22 @@ class App(Frame):
         unit = set()
 
         a = Repository()
-        result = a.Exist("device", phone)
-        result1 = a.Exist("aghsat", phone)
+        query_device = """SELECT * FROM device WHERE phone = %s"""
+        query_aghsat = """SELECT * FROM aghsat WHERE phone = %s"""
+        params = (phone,)
+        result_device = a.execute_query(query_device, params, fetch=True)
+        result_aghsat = a.execute_query(query_aghsat, params, fetch=True)
 
         # شمارش تعداد تکرار هر کد در result1
         code_count = {}
         prshode = {}
         prnashode = {}
 
-        if result and result1:
+        if result_device and result_aghsat:
             self.textbox1.config(state=NORMAL)
 
             # اضافه کردن مقادیر به set برای جلوگیری از تکرار
-            for item1 in result1:
+            for item1 in result_aghsat:
                 key = item1[1]
                 unit.add((key, item1[5], item1[6], item1[9]))  # فقط مقادیر مورد نظر را اضافه کنید
                 # شمارش تعداد تکرار کد دستگاه
@@ -1653,7 +1759,7 @@ class App(Frame):
 
             grouped_data = {}
 
-            for device in result:
+            for device in result_device:
                 device_code = device[1]  # کد دستگاه در ستون 1
                 if device_code not in grouped_data:
                     grouped_data[device_code] = {
@@ -1695,93 +1801,6 @@ class App(Frame):
 
             self.textbox1.config(state=DISABLED)
 
-    # -------------------------------------------- Clock ---------------------------------------
-
-        self.canvas_size = 200
-        self.center_x = self.canvas_size // 2
-        self.center_y = self.canvas_size // 2
-        self.radius = 80  # شعاع ساعت کوچکتر شده است
-
-        self.canvas_size = 250
-        self.center_x = self.canvas_size // 2
-        self.center_y = self.canvas_size // 2
-        self.radius = 100
-
-        # ساخت بوم
-        self.canvas = Canvas(self.frmamar, width=self.canvas_size, height=self.canvas_size, bg="black",
-                                highlightthickness=0)
-        self.canvas.place(x=910, y=10)
-
-        # رسم قاب و نشانه‌ها
-        self.setup_canvas()
-        self.update_clock()
-
-    def draw_numbers(self):
-        """رسم اعداد خاص (3، 6، 9، و 12)"""
-        positions = {3: 90, 6: 180, 9: 270, 12: 0}  # اعداد و زوایای آنها
-        for num, angle_deg in positions.items():
-            angle = math.radians(angle_deg)
-            x = self.center_x + (self.radius - 30) * math.sin(angle)
-            y = self.center_y - (self.radius - 30) * math.cos(angle)
-            self.canvas.create_text(x, y, text=str(num), font=("Helvetica", 14, "bold"), fill="gray")
-
-    def draw_marks(self):
-        """رسم نشانه‌های ساعت (خطوط کوتاه)"""
-        for i in range(60):
-            angle = math.radians(i * 6)  # هر نشانه 6 درجه
-            length = 10 if i % 5 == 0 else 5  # نشانه‌های 5 تایی بلندتر هستند
-            x_start = self.center_x + (self.radius - length) * math.sin(angle)
-            y_start = self.center_y - (self.radius - length) * math.cos(angle)
-            x_end = self.center_x + self.radius * math.sin(angle)
-            y_end = self.center_y - self.radius * math.cos(angle)
-            color = "#d7ad03" if i % 5 == 0 else "gray"
-            width = 2 if i % 5 == 0 else 1
-            self.canvas.create_line(x_start, y_start, x_end, y_end, fill=color, width=width)
-
-    def draw_hand(self, angle, length, width, color):
-        """رسم عقربه‌ها"""
-        x_end = self.center_x + length * math.sin(angle)
-        y_end = self.center_y - length * math.cos(angle)
-        self.canvas.create_line(
-            self.center_x, self.center_y, x_end, y_end, width=width, fill=color, capstyle=ROUND, tags="hand"
-        )
-
-    def update_clock(self):
-        """به‌روزرسانی عقربه‌ها با حرکت روان"""
-        # زمان فعلی
-        current_time = time.localtime()
-        hour = current_time.tm_hour % 12
-        minute = current_time.tm_min
-        second = current_time.tm_sec
-        millis = int(round(time.time() * 1000)) % 1000  # میلی‌ثانیه فعلی
-
-        # محاسبه زوایا
-        second_angle = math.radians((second + millis / 1000) * 6)  # حرکت روان ثانیه
-        minute_angle = math.radians((minute + second / 60) * 6)  # حرکت روان دقیقه
-        hour_angle = math.radians((hour + minute / 60) * 30)  # حرکت روان ساعت
-
-        # پاک کردن عقربه‌های قبلی
-        self.canvas.delete("hand")
-
-        # رسم عقربه‌ها
-        self.draw_hand(second_angle, self.radius - 20, 2, "red")  # عقربه ثانیه
-        self.draw_hand(minute_angle, self.radius - 40, 4, "white")  # عقربه دقیقه
-        self.draw_hand(hour_angle, self.radius - 60, 6, "gold")  # عقربه ساعت
-
-        # به‌روزرسانی سریع‌تر برای حرکت روان
-        self.canvas.after(50, self.update_clock)
-
-    def setup_canvas(self):
-        """تنظیمات اولیه بوم"""
-        # رسم قاب ساعت
-        self.canvas.create_oval(
-            10, 10, self.canvas_size - 10, self.canvas_size - 10, outline="gray", width=4
-        )
-
-        # رسم اعداد و نشانه‌ها
-        self.draw_numbers()
-        self.draw_marks()
-
     def update_timeee(self):
         current_time = time.strftime("%H:%M:%S")
         self.time_amar.config(text=f"{date} - {current_time}")
@@ -1789,23 +1808,27 @@ class App(Frame):
 
     def inserttableamaruser(self):
         user = Repository()
-        result = user.allusers('users')
+        query = """SELECT * FROM users"""
+        result = user.execute_query(query, fetch=True)
 
         for item in result:
             self.tblamar.insert('', END, values=item)
 
     def CountsAmar(self):
         user = Repository()
-        result = user.CountUsers("users")
-        result1 = user.CountUsers("aghsat")
-        result2 = user.CountUserWhere('not paid')
-        result3 = user.CountUserWhere('paid')
-        return result, result1, result2, result3
+        query_user = """SELECT COUNT(*) FROM users"""
+        query_aghsat = """SELECT COUNT(*) FROM aghsat"""
+        query_status = """SELECT COUNT(*) FROM aghsat where status = %s"""
+
+        result_user = user.execute_query(query_user, fetch=True)
+        result_aghsat = user.execute_query(query_aghsat, fetch=True)
+        result_notpaid = user.execute_query(query_status, ("not paid", ),  fetch=True)
+        result_paid = user.execute_query(query_status, ("paid", ),  fetch=True)
+        return result_user, result_aghsat, result_notpaid, result_paid
 
 
     def dr_prshode(self, e):
-
-        self.frmdr_prshode = Frame(self.screendr, width=1300, height=800)
+        self.frmdr_prshode = Frame(self.screendr, width=self.width_80, height=self.heaght_80)
         result = self.countpr_shode()
 
         # برچسب‌ها با استایل‌های جدید
@@ -1914,7 +1937,7 @@ class App(Frame):
         self.tblprshodemah.heading("price", text='مبلغ قسط')
         self.tblprshodemah.heading("time", text='تاریخ')
         self.tblprshodemah.heading("status", text='وضعیت')
-        self.tblprshodemah.place(x=650, y=40)
+        self.tblprshodemah.place(x=620, y=40)
 
         self.lbltblmonth = Label(self.frmdr_prshode, text="همه قسط ها")
         self.lbltblmonth.configure(**label_style)
@@ -1946,14 +1969,17 @@ class App(Frame):
 
     def inserttblprshodeemroz(self):
         user = Repository()
-        result = user.allusersday("aghsat", date, 'paid')
+        query = """SELECT * FROM aghsat where time = %s and status = %s"""
+        params = (date, "paid")
+        result = user.execute_query(query, params, fetch=True)
 
         for item in result:
             self.tblprshodeemroz.insert('', END, values=item)
 
     def inserttblprshodekoll(self):
         user = Repository()
-        result = user.alluserswhere('aghsat', 'paid')
+        query = """SELECT * FROM aghsat where status = %s"""
+        result = user.execute_query(query, ("paid", ), fetch=True)
         for item in result:
             self.tblprshodekol.insert('', END, values=item)
 
@@ -1963,25 +1989,55 @@ class App(Frame):
         user = Repository()
         year = jalali_date_now.year
         month = jalali_date_now.month
-        result = user.CountaghsatMonth(year, month, "paid")
-        result1 = user.CountUserWhere("paid")
-        result2 = user.CountaghsatWhere(date, 'paid')
-        result3 = user.allusersday("aghsat", date, 'paid')
-        result4 = user.allusersmonth("aghsat", year, month, 'paid')
-        result5 = user.alluserswhere("aghsat", "paid")
-        result6 = user.allusers("device")
+
+        params = (year, month, "paid")
+        params2 = (date, "paid")
+
+        query_date_day = """SELECT COUNT(*) FROM aghsat where time = %s AND status = %s"""
+        result2 = user.execute_query(query_date_day, params2, fetch=True)
+
+
+        query_aghsat_month = """SELECT COUNT(*) FROM aghsat WHERE SUBSTRING_INDEX(time, '/', 1) = %s  -- سال
+                          AND SUBSTRING_INDEX(SUBSTRING_INDEX(time, '/', 2), '/', -1) = %s and status = %s"""
+        result = user.execute_query(query_aghsat_month, params, fetch=True)
+
+
+        query_count_paid = """SELECT COUNT(*) FROM aghsat where status = %s"""
+        result1 = user.execute_query(query_count_paid, ("paid", ), fetch=True)
+
+
+        query_count_paid_date = """SELECT * FROM aghsat where time = %s AND status = %s"""
+        result3 = user.execute_query(query_count_paid_date, params2, fetch=True)
+
+
+        query_month_paid = f"""SELECT * FROM aghsat where SUBSTRING_INDEX(time, '/', 1) = %s  -- سال
+                         AND SUBSTRING_INDEX(SUBSTRING_INDEX(time, '/', 2), '/', -1) = %s and status = %s"""
+        result4 = user.execute_query(query_month_paid, params, fetch=True)
+
+
+        query_alluser_paid = f"""SELECT * FROM aghsat where status = %s"""
+        result5 = user.execute_query(query_alluser_paid, ("paid", ), fetch=True)
+
+        query_device = """SELECT * FROM device"""
+        result6 = user.execute_query(query_device, fetch=True)
+
         karmozdtoday = 0
         koltoday = 0
+
         karmozdmonth = 0
         kolmonth = 0
+
         karmozdall = 0
         kolall = 0
+
         kolprice = 0
+
         for item in result3:
             a = item[5].replace(',', '')
             b = item[4].replace(',', '')
             karmozdtoday += int(a)
             koltoday += int(b)
+
         for item in result4:
             c = item[5].replace(',', '')
             d = item[4].replace(',', '')
@@ -2003,7 +2059,7 @@ class App(Frame):
 
     def dr_prnashode(self, e):
         # فرم اصلی برای پرداخت نشده ها
-        self.frmprnashode = Frame(self.screendr, width=1300, height=800)
+        self.frmprnashode = Frame(self.screendr, width=self.width_80, height=self.heaght_80)
 
         # گرفتن نتایج از تابع countpr_nashode()
         result = self.countpr_nashode()
@@ -2105,7 +2161,7 @@ class App(Frame):
         self.tblprnashodemah.heading("price", text='مبلغ قسط')
         self.tblprnashodemah.heading("time", text='تاریخ')
         self.tblprnashodemah.heading("status", text='وضعیت')
-        self.tblprnashodemah.place(x=650, y=40)
+        self.tblprnashodemah.place(x=620, y=40)
         self.inserttblprshodemonth()
 
         lbltblmonth = Label(self.frmprnashode, text="همه اقساط")
@@ -2135,7 +2191,9 @@ class App(Frame):
 
     def inserttblornashodeday(self):
         user = Repository()
-        result = user.allusersday("aghsat", date, 'not paid')
+        query = f"""SELECT * FROM aghsat where time = %s AND status = %s"""
+        params = (date, "not paid")
+        result = user.execute_query(query, params, fetch=True)
         for item in result:
             self.tblprnashodeemroz.insert('', 'end', values=item)
 
@@ -2143,7 +2201,15 @@ class App(Frame):
         user = Repository()
         year = jalali_date_now.year
         month = jalali_date_now.month
-        result = user.searchdate('aghsat', year, month)
+
+        params = (year, month)
+        query = f"""
+                        SELECT *
+                        FROM aghsat
+                        WHERE SUBSTRING_INDEX(time, '/', 1) = %s  -- سال
+                          AND SUBSTRING_INDEX(SUBSTRING_INDEX(time, '/', 2), '/', -1) = %s  -- ماه
+                        """
+        result = user.execute_query(query, params, fetch=True)
         for item in result:
             if hasattr(self, 'tblprshodemah'):
                 if item[8] == 'paid':
@@ -2154,7 +2220,8 @@ class App(Frame):
 
     def inserttblprnashodekoll(self):
         user = Repository()
-        result = user.alluserswhere('aghsat', 'not paid')
+        query = f"""SELECT * FROM aghsat where status = %s"""
+        result = user.execute_query(query, ("not paid", ), fetch=True)
         for item in result:
             self.tblprnashodekol.insert('', END, values=item)
 
@@ -2172,14 +2239,28 @@ class App(Frame):
         karmozdall = 0
         ghestall = 0
 
-        priceday = user.allusersday("aghsat", date, 'not paid')
-        countday = user.CountaghsatWhere(date, 'paid')
+        price_day = f"""SELECT * FROM aghsat where time = %s AND status = %s"""
+        params = (date, "not paid")
+        priceday = user.execute_query(price_day, params, fetch=True)
 
-        pricemonth = user.allusersmonth("aghsat", year, month, 'not paid')
-        countmount = user.CountaghsatMonth(year, month, "not paid")
+        count_day = """SELECT COUNT(*) FROM aghsat where time = %s AND status = %s"""
+        params2 = (date, "paid")
+        countday = user.execute_query(count_day, params2, fetch=True)
 
-        allprice = user.alluserswhere('aghsat', 'not paid')
-        allcount = user.CountUserWhere("not paid")
+        price_month = f"""SELECT * FROM aghsat WHERE SUBSTRING_INDEX(time, '/', 1) = %s  -- سال
+                         AND SUBSTRING_INDEX(SUBSTRING_INDEX(time, '/', 2), '/', -1) = %s and status = %s"""
+        params3 = (year, month, "not paid")
+        pricemonth = user.execute_query(price_month, params3, fetch=True)
+
+        count_month = """SELECT COUNT(*) FROM aghsat WHERE SUBSTRING_INDEX(time, '/', 1) = %s  -- سال
+                          AND SUBSTRING_INDEX(SUBSTRING_INDEX(time, '/', 2), '/', -1) = %s and status = %s"""
+        countmount = user.execute_query(count_month, params3, fetch=True)
+
+        all_price = f"""SELECT * FROM aghsat where status = %s"""
+        allprice = user.execute_query(all_price, ("not paid", ), fetch=True)
+
+        all_count = """SELECT COUNT(*) FROM aghsat where status = %s"""
+        allcount = user.execute_query(all_count, ("not paid", ), fetch=True)
 
         for item in priceday:
             a = item[4].replace(',', '')
@@ -2202,7 +2283,7 @@ class App(Frame):
         return karmozdday, ghestday, countday, karmozdmonth, ghestmount, countmount, karmozdall, ghestall, allcount
 
     def search_date(self, e):
-        self.frmsearchdate = Frame(self.screendr, width=1300, height=800)
+        self.frmsearchdate = Frame(self.screendr, width=self.width_80, height=self.heaght_80)
 
         year = jalali_date_now.year
 
@@ -2325,26 +2406,52 @@ class App(Frame):
 
     def inserttblsearchdata(self):
         user = Repository()
+        query = f"""SELECT * FROM aghsat WHERE SUBSTRING_INDEX(time, '/', 1) = %s  -- سال
+                          AND SUBSTRING_INDEX(SUBSTRING_INDEX(time, '/', 2), '/', -1) = %s and status = %s"""
+
+        query2 = f"""SELECT * FROM aghsat WHERE SUBSTRING_INDEX(time, '/', 1) = %s  -- سال
+                          AND SUBSTRING_INDEX(SUBSTRING_INDEX(time, '/', 2), '/', -1) = %s"""
+
+        params = (int(self.year.get()), int(self.month.get()), 'paid')
+        params2 = (self.year.get(), self.month.get(), 'not paid')
+        params3 = (self.year.get(), self.month.get())
         if self.radiovalues.get() == 1:
-            result = user.allusersmonth("aghsat", int(self.year.get()), int(self.month.get()), 'paid')
+            result = user.execute_query(query, params, fetch=True)
             for item in result:
                 self.tblsearchdate.insert('', END, values=item)
         elif self.radiovalues.get() == 2:
-            result = user.allusersmonth("aghsat", self.year.get(), self.month.get(), 'not paid')
+            result = user.execute_query(query, params2, fetch=True)
             for item in result:
                 self.tblsearchdate.insert('', END, values=item)
         elif self.radiovalues.get() == 3:
-            result = user.allusersmonth2("aghsat", self.year.get(), self.month.get())
+            result = user.execute_query(query2, params3, fetch=True)
             for item in result:
                 self.tblsearchdate.insert('', END, values=item)
 
     def counttblsearchdata(self):
         user = Repository()
+
+        query = """SELECT COUNT(*) FROM aghsat WHERE SUBSTRING_INDEX(time, '/', 1) = %s  -- سال
+                                      AND SUBSTRING_INDEX(SUBSTRING_INDEX(time, '/', 2), '/', -1) = %s and status = %s"""
+
+        query2 = """SELECT * FROM aghsat WHERE SUBSTRING_INDEX(time, '/', 1) = %s  -- سال
+                                     AND SUBSTRING_INDEX(SUBSTRING_INDEX(time, '/', 2), '/', -1) = %s and status = %s"""
+
+        query3 = """SELECT COUNT(*) FROM aghsat WHERE SUBSTRING_INDEX(time, '/', 1) = %s  -- سال
+                          AND SUBSTRING_INDEX(SUBSTRING_INDEX(time, '/', 2), '/', -1) = %s"""
+
+        query4 = f"""SELECT * FROM aghsat WHERE SUBSTRING_INDEX(time, '/', 1) = %s  -- سال
+                          AND SUBSTRING_INDEX(SUBSTRING_INDEX(time, '/', 2), '/', -1) = %s"""
+
+        params = (self.year.get(), self.month.get(), "paid")
+        params2 = (self.year.get(), self.month.get(), "not paid")
+        params3 = (self.year.get(), self.month.get())
+
         if self.radiovalues.get() == 1:
-            countmount = user.CountaghsatMonth(self.year.get(), self.month.get(), "paid")
+            countmount = user.execute_query(query, params, fetch=True)
             self.lblcountsearch.config(text=f"تعداد اقساط پرداخت شده این ماه : {countmount[0][0]}")
             self.lblcountsearch.place(x=550, y=690)
-            pricemonth = user.allusersmonth("aghsat", self.year.get(), self.month.get(), "paid")
+            pricemonth = user.execute_query(query2, params, fetch=True)
             karmozd = 0
             all1 = 0
             for item in pricemonth:
@@ -2359,10 +2466,10 @@ class App(Frame):
             self.lblkarmozdsearchnashode.place_forget()
             self.lblallpricesearchnashode.place_forget()
         elif self.radiovalues.get() == 2:
-            countmount = user.CountaghsatMonth(self.year.get(), self.month.get(), "not paid")
+            countmount = user.execute_query(query, params2, fetch=True)
             self.lblcountsearch.place(x=550, y=690)
             self.lblcountsearch.config(text=f"تعداد پرداخت نشده های این ماه : {countmount[0][0]}")
-            pricemonth = user.allusersmonth("aghsat", self.year.get(), self.month.get(), "not paid")
+            pricemonth = user.execute_query(query2, params2, fetch=True)
             karmozd = 0
             all1 = 0
             for item in pricemonth:
@@ -2378,10 +2485,10 @@ class App(Frame):
             self.lblallpricesearchnashode.place_forget()
         elif self.radiovalues.get() == 3:
             self.cleartblsearchdata()
-            countmount = user.CountaghsatMonth2(self.year.get(), self.month.get())
+            countmount = user.execute_query(query3, params3, fetch=True)
             self.lblcountsearch.place(x=550, y=690)
             self.lblcountsearch.config(text=f"تعداد پرداخت شده و نشده های این ماه : {countmount[0][0]}")
-            pricemonth = user.allusersmonth2("aghsat", self.year.get(), self.month.get())
+            pricemonth = user.execute_query(query4, params3, fetch=True)
             karmozdprshode = 0
             karmozdprnashode = 0
 
@@ -2413,10 +2520,20 @@ class App(Frame):
         user = Repository()
         year = jalali_date_now.year
         month = jalali_date_now.month
-        countmount = user.CountaghsatMonth2(year, month)
+
+        query = """SELECT COUNT(*) FROM aghsat WHERE SUBSTRING_INDEX(time, '/', 1) = %s  -- سال
+                         AND SUBSTRING_INDEX(SUBSTRING_INDEX(time, '/', 2), '/', -1) = %s"""
+
+        query2 = f"""SELECT * FROM aghsat WHERE SUBSTRING_INDEX(time, '/', 1) = %s  -- سال
+                          AND SUBSTRING_INDEX(SUBSTRING_INDEX(time, '/', 2), '/', -1) = %s"""
+
+        params = (year, month)
+
+        countmount = user.execute_query(query, params, fetch=True)
+
         self.lblcountsearch.place(x=630, y=690)
         self.lblcountsearch.config(text=f"Total : {countmount[0][0]}")
-        pricemonth = user.allusersmonth2("aghsat", year, month)
+        pricemonth = user.execute_query(query2, params, fetch=True)
         karmozdprshode = 0
         karmozdprnashode = 0
 
@@ -2446,18 +2563,18 @@ class App(Frame):
 
     def search_user(self, e):
         # فرم جستجو
-        self.frmsearchuser = Frame(self.screendr, width=1300, height=800)
+        self.frmsearchuser = Frame(self.screendr, width=self.width_80, height=self.heaght_80)
 
         # استایل برای کادر جستجو
-        self.txtsearchuser = Entry(self.frmsearchuser, justify="center", font=("Arial", 14),
-                                   bd=2, relief="solid", highlightthickness=2, highlightcolor="#16A085")
-        self.txtsearchuser.place(x=1050, y=10)
+        self.txtsearchuser = Entry(self.frmsearchuser, justify="center", font=("Arial", 12),
+                                   bd=2, relief="solid", highlightthickness=2, highlightcolor="#16A085", width=20)
+        self.txtsearchuser.place(x=1020, y=10)
 
         # دکمه جستجو
         self.btnsearchuser = Button(self.frmsearchuser, text="جستجو", command=self.oneclicksearch,
-                                    font=("Arial", 12, "bold"), bg="#16A085", fg="white", bd=0, relief="flat", padx=15,
-                                    pady=10)
-        self.btnsearchuser.place(x=970, y=10)
+                                    font=("Arial", 12, "bold"), bg="#16A085", fg="white", bd=0, relief="flat", padx=10,
+                                    pady=5)
+        self.btnsearchuser.place(x=950, y=10)
 
         # برچسب‌ها با استایل‌های جدید
         label_style = {
@@ -2587,7 +2704,8 @@ class App(Frame):
 
     def insertdatasearchuseraghsat(self):
         user = Repository()
-        result = user.Exist("aghsat", self.txtsearchuser.get())
+        query = f"""select * from aghsat where phone = %s"""
+        result = user.execute_query(query, (self.txtsearchuser.get(), ), fetch=True)
         if result:
             for item in result:
                 self.lblname.configure(text=f"نام : {item[2]}")
@@ -2598,14 +2716,16 @@ class App(Frame):
 
     def insertdatatblsearchdevice(self):
         user = Repository()
-        result = user.Exist("device", self.txtsearchuser.get())
+        query = f"""select * from device where phone = %s"""
+        result = user.execute_query(query, (self.txtsearchuser.get(), ), fetch=True)
         if result:
             for item in result:
                 self.tblsearchuserdevice.insert('', 'end', values=item)
 
     def insertdatasearchtype(self):
         user = Repository()
-        result = user.Exist("type", self.txtsearchuser.get())
+        query = f"""select * from type where phone = %s"""
+        result = user.execute_query(query, (self.txtsearchuser.get(), ), fetch=True)
         if result:
             for item in result:
                 self.tblsearchusertype.insert('', 'end', values=item)
@@ -2621,9 +2741,21 @@ class App(Frame):
 
     def insetdatalblsearchuser(self):
         user = Repository()
-        result = user.CountUserWhere2(self.txtsearchuser.get(), 'paid')
-        result1 = user.CountUserWhere2(self.txtsearchuser.get(), 'not paid')
-        result2 = user.Exist("aghsat", self.txtsearchuser.get())
+
+        query = f"""select * from aghsat where phone = %s"""
+
+        query2 = """SELECT COUNT(*) FROM aghsat where phone = %s and status = %s"""
+
+        params = (self.txtsearchuser.get(), 'paid')
+
+        params2 = (self.txtsearchuser.get(), 'not paid')
+
+        result = user.execute_query(query2, params, fetch=True)
+
+        result1 = user.execute_query(query2, params2, fetch=True)
+
+        result2 = user.execute_query(query, (self.txtsearchuser.get(), ), fetch=True)
+
         karmozdprshode = 0
         allpriceprshode = 0
 

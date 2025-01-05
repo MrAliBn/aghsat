@@ -6,5 +6,6 @@
     <file url="file://$PROJECT_DIR$/be/device.py" dialect="GenericSQL" />
     <file url="file://$PROJECT_DIR$/be/type.py" dialect="GenericSQL" />
     <file url="file://$PROJECT_DIR$/dal/repository.py" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/pl/Agsat.py" dialect="GenericSQL" />
   </component>
 </project>

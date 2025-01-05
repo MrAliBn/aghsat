@@ -1,16 +1,16 @@
 import mysql.connector
+from mysql.connector import Error
+from tkinter import messagebox
 
 connection = mysql.connector.connect(
     host="localhost",
     user="root",
     password="7804",
     database="user",
-    auth_plugin="mysql_native_password"  # استفاده از پلاگین mysql_native_password
+    auth_plugin="mysql_native_password"
 )
 
 cursor = connection.cursor()
-cursor.execute("SELECT DATABASE();")
-result = cursor.fetchone()
 
 
 create_users_table = """
@@ -28,8 +28,15 @@ create_users_table = """
     );
     """
 
+try:
 
-cursor = connection.cursor()
+    with connection.cursor() as cursor:
+        cursor.execute(create_users_table)
+        connection.commit()
+except Error as e:
+    messagebox.showerror('error', f"Error while creating table: {e}")
+
+
 
 
 class Sabt_Aghsat:
@@ -44,7 +51,10 @@ class Sabt_Aghsat:
         self.status = status
         self.num = num
 
+if __name__ == "__main__":
+    cursor.close()
+    connection.close()
 
-cursor.execute(create_users_table)
-cursor.close()
+
+
 
